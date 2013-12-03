@@ -1,24 +1,6 @@
 var net = require("net");       //nodejs version of imports
  
 var cnt = 0;
-//setTimeout(function () {
-    var connection = net.connect(8086, "tavisca-data2.cloudapp.net", function() {   // connect to the server we made
-        console.log("client connected");
-        //setTimeout(function () {   
-            cnt++;
-            // every 1000ms
-            connection.write(JSON.stringify({
-                did: "test" + cnt,
-                cid: "temp" + cnt,
-                gc: "10,20"
-            }));// write to the connection
-        //}, 1000);//the 1000 is the delay in between the anon function calls
-    });
-//}, 1000);// add another connection every second
-
-
-
-var net = require('net');
 
 var HOST = 'tavisca-data2.cloudapp.net';
 var PORT = 8086;
