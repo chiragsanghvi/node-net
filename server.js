@@ -58,7 +58,7 @@ var performOperation = function(data, socket) {
       message = JSON.parse(data);
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
-      socket.write("401");
+      if(socket.writable) socket.write("401");
       return;
     }
     // If message object if not formed or it doesn't contains did(deviceid) and gc(geocode), then directly send a "200|Ok" response
@@ -92,16 +92,16 @@ var performOperation = function(data, socket) {
         // Save the object
         apData.save().then(function() {
           sys.puts("New data article created with id : " + apData.id());
-          socket.write("200|" + message.cid + "|" + apData.id());
+          if(socket.writable) socket.write("200|" + message.cid + "|" + apData.id());
         }, function(err) {
-          sys.puts(err.message);
-          socket.write("500|" + message.cid);
+          sys.puts(JSON.stringify(err));
+          if(socket.writable) socket.write("500|" + message.cid);
         });
 
         return;
       }
     } 
-    socket.write("400");
+    if(socket.writable) socket.write("400");
   });
 };
 
@@ -123,7 +123,12 @@ net.createServer(function (socket) {
   // Handle incoming messages from clients.
   socket.on('data', function (data) {
     console.log(data.toString());
-    performOperation(data, socket);
+
+    if(data && data.toString() == 'exit\n') {
+      socket.end();
+    } else {
+      performOperation(data, socket);
+    }
   });
  
   // Remove the client from the list when it leaves
@@ -143,6 +148,6 @@ net.createServer(function (socket) {
     socket.destroy();
   });
   
-}).listen(8085);
+}).listen(8086);
  
-console.log("Server running at port 8085\n");
+console.log("Server running at port 8086\n");
