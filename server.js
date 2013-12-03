@@ -39,10 +39,30 @@ var getGeocode = function(geoCode) {
   }
 }; 
 
-// Parses the message and perorms specific operation
+var logMessage = function(message) {
+  if (message && message.trim().length > 0) {
+    var log = new Appacitive.Article('log');
+    log.set('message', message);
+    var domain = require('domain').create();
+
+    domain.run(function(){
+      log.save();
+    });
+
+    domain.on('error', function() {
+      domain.dispose();
+    });
+  }
+};
+
+// Parses the message and performs specific operation
 var performOperation = function(data, socket) {
 
   var domain = require('domain').create();
+
+
+  logMessage(data.toString());
+
 
   domain.on('error', function(err) {
     sys.puts("Error for " + socket.name + " : "  + err.message);
@@ -52,7 +72,6 @@ var performOperation = function(data, socket) {
   domain.run(function() {
 
     var message = null ;
-
     try {
       // Parse data into message object
       message = JSON.parse(data);
@@ -61,7 +80,8 @@ var performOperation = function(data, socket) {
       if(socket.writable) socket.write("401");
       return;
     }
-    // If message object if not formed or it doesn't contains did(deviceid) and gc(geocode), then directly send a "200|Ok" response
+
+    // If message object if not formed or it doesn't contains did(deviceid) and gc(geocode), then directly send a "400" response
     if (message && message.did && message.gc && message.cid) {
       
       // Create Appacitive article object of type 'data'
@@ -117,14 +137,10 @@ net.createServer(function (socket) {
   // Log on console about its connection
   console.log(socket.name + " connected , total connections " + clients.length);
   
-  // Send a 200 message 
-  socket.write("200");
-
   // Handle incoming messages from clients.
   socket.on('data', function (data) {
     console.log(data.toString());
-
-    if(data && data.toString() == 'exit\n') {
+    if(data && data.toString() == 'exit\r\n') {
       socket.end();
     } else {
       performOperation(data, socket);
