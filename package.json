@@ -1,0 +1,17 @@
+{
+  "name": "node-net",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "main": "server.js",
+  "engines": [
+    "node >= 0.8.16"
+  ],
+  "dependencies": {
+    "xmlhttprequest-with-globalagent": "x.x.x",
+    "facebook-node-sdk": "0.2",
+    "node-simple-router": "x"
+  }
+}

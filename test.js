@@ -1,8 +1,9 @@
-var net = require("net");       //nodejs version of imports
+var net = require("net"); //nodejs version of imports
  
 var cnt = 0;
 
 var HOST = 'tavisca-data2.cloudapp.net';
+//var HOST = 'localhost';
 var PORT = 8086;
 var noOfClients = 0;
 
@@ -26,7 +27,7 @@ var clientTimer = setInterval(function() {
 
             try {
                 // every 1000ms
-                client.write(JSON.stringify(data));// write to the connection
+                if(client.writable) client.write(JSON.stringify(data));// write to the connection
             } catch(e){}
 
             console.log("Data send " + JSON.stringify(data));
@@ -48,7 +49,7 @@ var clientTimer = setInterval(function() {
         console.log('Connection closed');
     });
 
-    if(++noOfClients >= 150) {
+    if(++noOfClients >= 50) {
         clearInterval(clientTimer);
     }
 }, 100);

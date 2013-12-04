@@ -1,6 +1,7 @@
-// Load TCP Library
+// Load TCP , Sys and router modules
 var net = require('net'),
-  sys = require('sys');
+  sys = require('sys'),
+  Router = require('node-simple-router')
 
 // Keep track of the chat clients
 var clients = [];
@@ -130,7 +131,7 @@ var performOperation = function(data, socket) {
 };
 
 // Start a TCP Server
-net.createServer(function (socket) {
+var tcpServer = net.createServer(function (socket) {
  
   // Identify this client
   socket.name = socket.remoteAddress + ":" + socket.remotePort 
@@ -167,10 +168,68 @@ net.createServer(function (socket) {
   socket.on("error", function(err) {
     console.log("Caught socket error for " + socket.name);
     console.log(err.stack);
+
+    var idx = clients.indexOf(socket);
+    if (idx !== -1) {
+        sys.puts(socket.name + " disconnected, total connections " + (clients.length - 1));
+        clients.splice(idx, 1);
+    }
     // Destroy socket
     socket.destroy();
   });
   
-}).listen(8086);
+});
+
+// Start listening on port 8086
+tcpServer.listen(8086);
  
-console.log("Server running at port 8086\n");
+console.log("TCP Server running at port 8086");
+
+// Load Http library
+var http = require('http');
+
+// Create a new instance of router
+var router = Router({ logging: false });
+
+// Route for get connections
+router.get('/connections', function (req, res) {
+  var connections = [];
+  clients.forEach(function(c) {
+    connections.push({
+      remotePort: c.remotePort,
+      remoteAddress: c.remoteAddress,
+      name: c.name,
+      writable : c.writable ? true : false
+    });
+  });
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  res.end(JSON.stringify({ connections: connections, total: connections.length }));
+});
+
+// Route to get no of connections
+router.get('/connections/count', function(req, res) {
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  res.end(JSON.stringify({ total: clients.length }));
+});
+
+// Route to close all sockets
+router.post('/connections/close', function(req, res) {
+  clients.forEach(function(c) {
+    var idx = clients.indexOf(c);
+    if (idx !== -1) {
+        sys.puts(c.name + " disconnected, total connections " + (clients.length - 1));
+        clients.splice(idx, 1);
+    }
+    c.destroy();
+  });
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end("Successful");
+});
+
+// Start an HTTP Server for logs with router
+var httpServer = require('http').createServer(router);
+
+// Start listening on 8082
+httpServer.listen(8082);
+
+console.log("HTTP Server running at port 8082\n");
