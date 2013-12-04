@@ -39,6 +39,12 @@ var getGeocode = function(geoCode) {
   }
 }; 
 
+// Cleans the input of carriage return, newline
+var cleanInput = function (data) {
+  return data.toString().replace(/(\r\n|\n|\r)/gm,"");
+};
+
+// Log initial message on server
 var logMessage = function(message) {
   if (message && message.trim().length > 0) {
     var log = new Appacitive.Article('log');
@@ -60,9 +66,7 @@ var performOperation = function(data, socket) {
 
   var domain = require('domain').create();
 
-
   logMessage(data.toString());
-
 
   domain.on('error', function(err) {
     sys.puts("Error for " + socket.name + " : "  + err.message);
@@ -74,7 +78,7 @@ var performOperation = function(data, socket) {
     var message = null ;
     try {
       // Parse data into message object
-      message = JSON.parse(data);
+      message = JSON.parse(cleanInput(data.toString()));
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
       if(socket.writable) socket.write("401");
@@ -133,7 +137,10 @@ net.createServer(function (socket) {
 
   // Put this new client in the list
   clients.push(socket);
- 
+  
+  // Set content encoding to UTF8, to avoid conversion
+  socket.setEncoding('UTF-8');
+
   // Log on console about its connection
   console.log(socket.name + " connected , total connections " + clients.length);
   
