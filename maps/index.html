@@ -114,12 +114,22 @@
                         latlng = new google.maps.LatLng(gc.lat, gc.lng);
                         coordinates.push(latlng);
                       //  bounds.extend(latlng);
-                        marker = new google.maps.Marker({
-                            position: latlng,
-                            map: map,
-                            animation: google.maps.Animation.DROP,
-                            icon: "images/dot.png"
-                        });
+                        if (i == 0) {
+                            marker = new google.maps.Marker({
+                                position: latlng,
+                                map: map,
+                                animation: google.maps.Animation.DROP,
+                                icon: "images/current.gif",
+                                optimized: false
+                            });
+                        } else {
+                            marker = new google.maps.Marker({
+                                position: latlng,
+                                map: map,
+                                animation: google.maps.Animation.DROP,
+                                icon: "images/dot.png"
+                            });
+                        }
                         markers.push(marker);
                         google.maps.event.addListener(marker, 'click', (function(marker, i) {
                             return function() {

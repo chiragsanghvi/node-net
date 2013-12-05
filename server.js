@@ -348,6 +348,10 @@ router.get('/images/dot.png', function(request, response) {
   fileServer.serve(request, response);
 });
 
+router.get('/images/current.gif', function(request, response) {
+  fileServer.serve(request, response);
+});
+
 router.get('/scripts/jquery.js', function(request, response) {
   fileServer.serve(request, response);
 });
