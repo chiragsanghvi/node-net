@@ -83,7 +83,17 @@
             };
             var map = new google.maps.Map(document.getElementById("map"), myOptions);
 
+            var timer = null;
+
             var markers = [];
+
+            var currentMarker = new google.maps.MarkerImage("images/current.gif");
+            currentMarker.size = new google.maps.Size(60, 60);
+            currentMarker.anchor = new google.maps.Point(30, 30);
+
+            var otherMarker =  new google.maps.MarkerImage("images/dot.png");
+            otherMarker.size = new google.maps.Size(9, 9);
+            otherMarker.anchor = new google.maps.Point(4.5, 4.5);
 
             function initializeMaps(deviceId) {
                 $('#btnSearch').val('Searching...').attr('disabled', true);
@@ -95,10 +105,12 @@
                     fields: ["geocode","__utcdatecreated"]
                 });
 
+                var path = null;
+                    
                 query.fetch().then(function(results) {
                     $('#btnSearch').val('Plotting..');
                     for (var i = 0; i < markers.length; i++) {
-                        this.markers[i].setMap(null);
+                        markers[i].setMap(null);
                     }
                     this.markers = [];
                     var infowindow = new google.maps.InfoWindow(); 
@@ -119,15 +131,14 @@
                                 position: latlng,
                                 map: map,
                                 animation: google.maps.Animation.DROP,
-                                icon: "images/current.gif",
+                                icon: currentMarker,
                                 optimized: false
                             });
                         } else {
                             marker = new google.maps.Marker({
                                 position: latlng,
                                 map: map,
-                                animation: google.maps.Animation.DROP,
-                                icon: "images/dot.png"
+                                icon: otherMarker
                             });
                         }
                         markers.push(marker);
@@ -139,13 +150,17 @@
                         })(marker, i));
                     }
 
-                    map.setCenter(latlng);
-                    var path = new google.maps.Polyline({
+                    if(!timer) map.setCenter(latlng);
+                    if (path) path.setMap(null);
+
+                    path = new google.maps.Polyline({
                         path: coordinates,
+                        geodesic: true,
                         strokeColor: "#0093c8",
                         strokeOpacity: 1.0,
                         strokeWeight: 2
                     });
+
                     path.setMap(map);
                     //map.fitBounds(bounds);
                 }, function() {
@@ -156,12 +171,11 @@
                 });
             }
 
-            var timer = null;
             $('#btnSearch').bind('click', function(){
                 initializeMaps($('#txtDeviceId').val().trim());
-                setInterval(function(){
+                timer = setInterval(function(){
                     initializeMaps($('#txtDeviceId').val().trim());
-                }, 10000);
+                }, 20000);
             });
 
           </script>
