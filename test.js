@@ -2,10 +2,12 @@ var net = require("net"); //nodejs version of imports
  
 var cnt = 0;
 
-var HOST = 'tavisca-data2.cloudapp.net';
-//var HOST = 'localhost';
+//var HOST = 'tavisca-data2.cloudapp.net';
+var HOST = 'localhost';
 var PORT = 8086;
 var noOfClients = 0;
+
+var dids = [1,2,3,4,5,6,7,8,9,10];
 
 var clientTimer = setInterval(function() {
     var client = new net.Socket();
@@ -15,12 +17,15 @@ var clientTimer = setInterval(function() {
 
         console.log('CONNECTED TO: ' + HOST + ':' + PORT);
         
-        timer = setInterval(function() {
+        timer = setTimeout(function() {
             // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
             cnt++;
 
+            var did = dids.shift();
+            dids.push(did);
+
             var data = {
-                did: "test" + cnt,
+                did: "test" + did,
                 cid: "temp" + cnt,
                 gc: "10,20"
             };
@@ -32,7 +37,7 @@ var clientTimer = setInterval(function() {
 
             console.log("Data send " + JSON.stringify(data));
             if (++requestCnt == 20) {
-                client.destroy();
+                //client.destroy();
                 clearInterval(timer);
             }
         }, 1000);
