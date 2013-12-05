@@ -1,7 +1,7 @@
 // Load TCP , Sys and router modules
 var net = require('net'),
   sys = require('sys'),
-  Router = require('node-simple-router')
+  Router = require('node-simple-router');
 
 // Keep track of the chat clients
 var clients = {};
@@ -331,6 +331,25 @@ router.get('/devices/:deviceId', function(req, res){
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(JSON.stringify({ noOfConnections: 0, connections: [] }));
   }
+});
+
+var static = require('node-static');
+var fileServer = new static.Server('./maps');
+
+router.get('/', function(request, response) {
+  fileServer.serve(request, response);
+});
+
+router.get('/scripts/AppacitiveSDK.min.js', function(request, response) {
+  fileServer.serve(request, response);
+});
+
+router.get('/images/dot.png', function(request, response) {
+  fileServer.serve(request, response);
+});
+
+router.get('/scripts/jquery.js', function(request, response) {
+  fileServer.serve(request, response);
 });
 
 // Start an HTTP Server for logs with router
