@@ -160,6 +160,7 @@ var deleteClient = function(socket) {
       if (client.deviceId && deviceSockets[client.deviceId][client.id]) {
         delete deviceSockets[client.deviceId][client.id];
         deviceSockets[client.deviceId].count--;
+        if (deviceSockets[client.deviceId].count <= 0) delete deviceSockets[client.deviceId];
       }
       delete clients[socket.id];
   }
