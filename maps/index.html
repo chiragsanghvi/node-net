@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+        <title>Google Maps v3 API Example</title>
+        <style>
+            html, body, #map {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            div#footer {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 18px;
+                margin: 0;
+                padding: 6px;
+                z-index: 2;
+                background: WHITE;
+            }
+        </style> 
+        <script type="text/javascript" src="scripts/AppacitiveSDK.min.js"></script>
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+        <script type="text/javascript" src="scripts/jquery.js"></script>
+    </head>
+    <body>
+        <div id="map" style="float: left;"></div>
+        <div style="position:absolute;width:94%;background-color:gray;padding:2px 0px 2px 25px">
+            <span>Device Id: </span>
+            <input type="text" id="txtDeviceId" style="width:130px;">
+            <input type="button" id="btnSearch" style="width:70px;" value="search"> 
+        </div>
+        <!-- bring in the google maps library -->
+ 
+          <script type="text/javascript">
+
+            // Initialize it with apikey, appId and env
+            Appacitive.initialize({
+              apikey: 'Wze3QDlA5oM8uHhCK9mTRehqKqJPWKpoOn4u2k+29s8=',
+              appId: '43687051486429854',
+              env: 'sandbox'
+            });
+
+            // Parses string geocode value and return Appacitive geocode object or false
+            var getGeocode = function(geoCode) {
+              // geoCode is not string or its length is 0, return false
+              if (typeof geoCode !== 'string' || geoCode.length == 0) return false;
+              
+              // Split geocode string by ,
+              var split = geoCode.split(',');
+
+              // split length is not equal to 2 so return false
+              if (split.length !== 2 ) return false;
+
+              // validate the geocode
+              try {
+                return new Appacitive.GeoCoord(split[0], split[1]);
+              } catch(e) {
+                return false;
+              }
+            }; 
+
+            var myOptions = {
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                mapTypeControl: false,
+                panControl: true,
+                panControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_TOP
+                },
+                zoomControl: true,
+                zoomControlOptions: {
+                    style: google.maps.ZoomControlStyle.DEFAULT,
+                    position: google.maps.ControlPosition.RIGHT_TOP
+                },
+                center: new google.maps.LatLng(15,75),
+                zoom:2
+            };
+            var map = new google.maps.Map(document.getElementById("map"), myOptions);
+
+            var markers = [];
+
+            function initializeMaps(deviceId) {
+                $('#btnSearch').val('Searching...').attr('disabled', true);
+
+                var query = Appacitive.Article.findAll({
+                    pageSize: 200,
+                    filter: Appacitive.Filter.Property('deviceid').like(deviceId),
+                    schema: 'data',
+                    fields: ["geocode","__utcdatecreated"]
+                });
+
+                query.fetch().then(function(results) {
+                    $('#btnSearch').val('Plotting..');
+                    for (var i = 0; i < markers.length; i++) {
+                        this.markers[i].setMap(null);
+                    }
+                    this.markers = [];
+                    var infowindow = new google.maps.InfoWindow(); 
+                    var marker, i;
+                    //var bounds = new google.maps.LatLngBounds();
+
+                    coordinates = [];
+
+                    var latlng = new google.maps.LatLng(10,20);
+
+                    for (i = 0; i < results.length; i++) { 
+                        var gc = getGeocode(results[i].get("geocode"));
+                        latlng = new google.maps.LatLng(gc.lat, gc.lng);
+                        coordinates.push(latlng);
+                      //  bounds.extend(latlng);
+                        marker = new google.maps.Marker({
+                            position: latlng,
+                            map: map,
+                            animation: google.maps.Animation.DROP,
+                            icon: "images/dot.png"
+                        });
+                        markers.push(marker);
+                        google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                            return function() {
+                                infowindow.setContent(Appacitive.Date.parseISODate(results[i].get('__utcdatecreated')).toString());
+                                infowindow.open(map, marker);
+                            }
+                        })(marker, i));
+                    }
+
+                    map.setCenter(latlng);
+                    var path = new google.maps.Polyline({
+                        path: coordinates,
+                        strokeColor: "#0093c8",
+                        strokeOpacity: 1.0,
+                        strokeWeight: 2
+                    });
+                    path.setMap(map);
+                    //map.fitBounds(bounds);
+                }, function() {
+                    $('#btnSearch').val('Plotting..');
+                    for (var i = 0; i < markers.length; i++) {
+                        this.markers[i].setMap(null);
+                    }
+                });
+            }
+
+            var timer = null;
+            $('#btnSearch').bind('click', function(){
+                initializeMaps($('#txtDeviceId').val().trim());
+                setInterval(function(){
+                    initializeMaps($('#txtDeviceId').val().trim());
+                }, 10000);
+            });
+
+          </script>
+    </body>
+</html>

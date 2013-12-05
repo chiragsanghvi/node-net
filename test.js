@@ -2,12 +2,12 @@ var net = require("net"); //nodejs version of imports
  
 var cnt = 0;
 
-//var HOST = 'tavisca-data2.cloudapp.net';
-var HOST = 'localhost';
+var HOST = 'tavisca-data2.cloudapp.net';
+//var HOST = 'localhost';
 var PORT = 8086;
 var noOfClients = 0;
 
-var dids = [1,2,3,4,5,6,7,8,9,10];
+var dids = [1,2,3,4,5,6,7];
 
 var clientTimer = setInterval(function() {
     var client = new net.Socket();
