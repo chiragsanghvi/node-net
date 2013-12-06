@@ -220,6 +220,18 @@ var tcpServer = net.createServer(function (socket) {
     //delete client from clients
     deleteClient(socket);
   });
+
+  // Set idle timeout to 180000 (30 minutes)
+  socket.setTimeout(180000);
+
+  // Timeout handling for scokets
+  socket.on("timeout", function() {
+    // Destroy socket
+    socket.destroy();
+
+    //delete client from clients
+    deleteClient(socket);
+  });
   
 });
 

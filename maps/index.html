@@ -120,13 +120,16 @@
                     coordinates = [];
 
                     var latlng = new google.maps.LatLng(10,20);
+                    results.reverse();
 
-                    for (i = 0; i < results.length; i++) { 
+                    var len = results.length -1;
+                    for (var i = 0; i < results.length; i++) { 
                         var gc = getGeocode(results[i].get("geocode"));
                         latlng = new google.maps.LatLng(gc.lat, gc.lng);
+
                         coordinates.push(latlng);
                       //  bounds.extend(latlng);
-                        if (i == 0) {
+                        if (i == len) {
                             marker = new google.maps.Marker({
                                 position: latlng,
                                 map: map,
@@ -142,9 +145,9 @@
                             });
                         }
                         markers.push(marker);
-                        google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                        google.maps.event.addListener(marker, 'click', (function(marker, j) {
                             return function() {
-                                infowindow.setContent(Appacitive.Date.parseISODate(results[i].get('__utcdatecreated')).toString());
+                                infowindow.setContent(Appacitive.Date.parseISODate(results[j].get('__utcdatecreated')).toString());
                                 infowindow.open(map, marker);
                             }
                         })(marker, i));
