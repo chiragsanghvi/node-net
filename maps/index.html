@@ -84,6 +84,7 @@
             var map = new google.maps.Map(document.getElementById("map"), myOptions);
 
             var timer = null;
+            var initialized = false;
 
             var markers = [];
 
@@ -135,13 +136,15 @@
                     markers = [];
                     var infowindow = new google.maps.InfoWindow(); 
                     var marker, i;
-                    var bounds = new google.maps.LatLngBounds();
+                    //var bounds = new google.maps.LatLngBounds();
 
                     coordinates = [];
 
                     var latlng = new google.maps.LatLng(10,20);
                     results.reverse();
+
                     if (path) path.setMap(null);
+                    
                     var len = results.length -1;
                     for (var i = 0; i < results.length; i++) { 
                         var gc = getGeocode(results[i].get("geocode"));
@@ -183,7 +186,11 @@
                         }
                     }
 
-                    if(!timer) map.setCenter(latlng);
+                    if (!initialized) {
+                      map.setZoom(12);
+                      map.setCenter(latlng);
+                    }
+                    initialized = true;
 
                     path = new google.maps.Polyline({
                         path: coordinates,
@@ -204,7 +211,7 @@
             }
 
             $('#btnSearch').bind('click', function(){
-                map.setZoom(12);
+                
                 initializeMaps($('#txtDeviceId').val().trim());
                 timer = setInterval(function(){
                     initializeMaps($('#txtDeviceId').val().trim());
