@@ -157,7 +157,7 @@
                             latlng = new google.maps.LatLng(gc.lat, gc.lng);
 
                             coordinates.push(latlng);
-                            bounds.extend(latlng);
+                            //bounds.extend(latlng);
                             if (i == len) {
                                 marker = new google.maps.Marker({
                                     position: latlng,
@@ -194,7 +194,7 @@
                     });
 
                     path.setMap(map);
-                    map.fitBounds(bounds);
+                    //map.fitBounds(bounds);
                 }, function() {
                     $('#btnSearch').val('Plotting..');
                     for (var i = 0; i < markers.length; i++) {
