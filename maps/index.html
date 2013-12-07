@@ -95,6 +95,27 @@
             otherMarker.size = new google.maps.Size(9, 9);
             otherMarker.anchor = new google.maps.Point(4.5, 4.5);
 
+
+            var path = null;
+            
+
+            var getCooodinatesWithinRadius = function(radius, markers) {
+                var $lat = markers[0].position.lat();
+                var $lon = markers[0].position.lng();
+
+                var res = [];
+                for(var j=1; j< markers.length; j= j+1) {
+                    var marker = markers[j];
+                    var lat = marker.position.lat();
+                    var lon = marker.position.lng();
+                    var dis = (Math.acos(Math.sin($lat * Math.PI / 180) * Math.sin(lat * Math.PI / 180) + Math.cos($lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.cos(($lon - lon) *  Math.PI / 180)) * 180 / Math.PI * 60 * 0.01);
+                    if(dis <= radius) {
+                        res.push(j);
+                    }
+                }
+                return res;
+            }
+
             function initializeMaps(deviceId) {
                 $('#btnSearch').val('Searching...').attr('disabled', true);
 
@@ -104,57 +125,65 @@
                     schema: 'data',
                     fields: ["geocode","__utcdatecreated"]
                 });
-
-                var path = null;
-                    
+  
                 query.fetch().then(function(results) {
                     $('#btnSearch').val('Plotting..');
                     for (var i = 0; i < markers.length; i++) {
                         markers[i].setMap(null);
                     }
-                    this.markers = [];
+
+                    markers = [];
                     var infowindow = new google.maps.InfoWindow(); 
                     var marker, i;
-                    //var bounds = new google.maps.LatLngBounds();
+                    var bounds = new google.maps.LatLngBounds();
 
                     coordinates = [];
 
                     var latlng = new google.maps.LatLng(10,20);
                     results.reverse();
-
+                    if (path) path.setMap(null);
                     var len = results.length -1;
                     for (var i = 0; i < results.length; i++) { 
                         var gc = getGeocode(results[i].get("geocode"));
-                        latlng = new google.maps.LatLng(gc.lat, gc.lng);
-
-                        coordinates.push(latlng);
-                      //  bounds.extend(latlng);
-                        if (i == len) {
-                            marker = new google.maps.Marker({
-                                position: latlng,
-                                map: map,
-                                animation: google.maps.Animation.DROP,
-                                icon: currentMarker,
-                                optimized: false
-                            });
-                        } else {
-                            marker = new google.maps.Marker({
-                                position: latlng,
-                                map: map,
-                                icon: otherMarker
-                            });
-                        }
-                        markers.push(marker);
-                        google.maps.event.addListener(marker, 'click', (function(marker, j) {
-                            return function() {
-                                infowindow.setContent(Appacitive.Date.parseISODate(results[j].get('__utcdatecreated')).toString());
-                                infowindow.open(map, marker);
+                        if (gc.lat == 0 && gc.lng == 0) {
+                            if (i == len) {
+                                var m = markers.pop();
+                                m.setIcon(currentMarker);
+                                markers.push(m);
                             }
-                        })(marker, i));
+                            continue;
+                        } else {
+
+                            latlng = new google.maps.LatLng(gc.lat, gc.lng);
+
+                            coordinates.push(latlng);
+                            bounds.extend(latlng);
+                            if (i == len) {
+                                marker = new google.maps.Marker({
+                                    position: latlng,
+                                    map: map,
+                                    animation: google.maps.Animation.DROP,
+                                    icon: currentMarker,
+                                    optimized: false
+                                });
+                            } else {
+                                marker = new google.maps.Marker({
+                                    position: latlng,
+                                    map: map,
+                                    icon: otherMarker
+                                });
+                            }
+                            markers.push(marker);
+                            google.maps.event.addListener(marker, 'click', (function(marker, j) {
+                                return function() {
+                                    infowindow.setContent(Appacitive.Date.parseISODate(results[j].get('__utcdatecreated')).toString());
+                                    infowindow.open(map, marker);
+                                }
+                            })(marker, i));
+                        }
                     }
 
                     if(!timer) map.setCenter(latlng);
-                    if (path) path.setMap(null);
 
                     path = new google.maps.Polyline({
                         path: coordinates,
@@ -165,16 +194,17 @@
                     });
 
                     path.setMap(map);
-                    //map.fitBounds(bounds);
+                    map.fitBounds(bounds);
                 }, function() {
                     $('#btnSearch').val('Plotting..');
                     for (var i = 0; i < markers.length; i++) {
-                        this.markers[i].setMap(null);
+                        markers[i].setMap(null);
                     }
                 });
             }
 
             $('#btnSearch').bind('click', function(){
+                map.setZoom(12);
                 initializeMaps($('#txtDeviceId').val().trim());
                 timer = setInterval(function(){
                     initializeMaps($('#txtDeviceId').val().trim());
