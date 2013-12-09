@@ -1,8 +1,9 @@
 // Load TCP , Sys and router modules
 var net = require('net'),
   sys = require('sys'),
+  data = require('./data.js'),
   Router = require('node-simple-router');
-
+  
 // Keep track of the chat clients
 var clients = {};
 
@@ -15,64 +16,15 @@ var noOfClients = 0;
 // A list of all sockets for devices
 var deviceSockets = {};
 
-// Include Appacitive SDK 
-var Appacitive = require('./AppacitiveSDK.js');
-
-// Initialize it with apikey, appId and env
-Appacitive.initialize({
-  apikey: 'Wze3QDlA5oM8uHhCK9mTRehqKqJPWKpoOn4u2k+29s8=',
-  appId: '43687051486429854',
-  env: 'sandbox'
-});
-
-// Change base URL for Appacitive
-Appacitive.config.apiBaseUrl = "http://apis.appacitive.com/";
-
-console.log("AppacitiveSDK loaded");
-
-// Parses string geocode value and return Appacitive geocode object or false
-var getGeocode = function(geoCode) {
-  // geoCode is not string or its length is 0, return false
-  if (typeof geoCode !== 'string' || geoCode.length == 0) return false;
-  
-  // Split geocode string by ,
-  var split = geoCode.split(',');
-
-  // split length is not equal to 2 so return false
-  if (split.length !== 2 ) return false;
-
-  // validate the geocode
-  try {
-    return new Appacitive.GeoCoord(split[0], split[1]);
-  } catch(e) {
-    return false;
-  }
-}; 
 
 // Cleans the input of carriage return, newline
 var cleanInput = function (data) {
   return data.toString().replace(/(\r\n|\n|\r)/gm,"");
 };
 
-// Log initial message on server
-var logMessage = function(message) {
-  if (message && message.trim().length > 0) {
-    var log = new Appacitive.Article('log');
-    log.set('message', message);
-    var domain = require('domain').create();
-
-    domain.run(function(){
-      log.save();
-    });
-
-    domain.on('error', function() {
-      domain.dispose();
-    });
-  }
-};
 
 // Parses the message and performs specific operation
-var performOperation = function(data, socket) {
+var performOperation = function(message, socket) {
 
   // Create a domain for exception handling
   var domain = require('domain').create();
@@ -81,24 +33,23 @@ var performOperation = function(data, socket) {
   //logMessage(data.toString());
 
   domain.on('error', function(err) {
-    sys.puts("Error for " + socket.name + " : "  + err.message);
+    sys.puts("Error for " + socket.name + " : "  + err.message + '\n' + err.stack);
     domain.dispose();
   });
 
   domain.run(function() {
 
-    var message = null ;
     try {
       // Parse data into message object
-      message = JSON.parse(cleanInput(data.toString()));
+      message = JSON.parse(cleanInput(message.toString()));
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
       if(socket.writable) socket.write("401");
       return;
     }
 
-    // If message object if not formed or it doesn't contains did(deviceid) and gc(geocode), then directly send a "400" response
-    if (message && message.did && message.gc && message.cid) {
+    // If message object is not formed or it doesn't contains did(deviceid) and gc(geocode), then directly send a "400" response
+    if (message && message.did && message.gc) {
       
       // Set this socket for a particular device 
       if (!deviceSockets[message.did]) deviceSockets[message.did] = { count: 0}
@@ -111,42 +62,9 @@ var performOperation = function(data, socket) {
       // Set deviceId in socket too
       socket.deviceId = message.did;
 
-      // Create Appacitive article object of type 'data'
-      var apData = new Appacitive.Article('data');
+      data.addData(message, socket);
 
-      // Get Appacitive.GeoCoord object for gc sent in message
-      var geoCode = getGeocode(message.gc);
-
-      // If geoCode is valid then create
-      if (geoCode) {
-
-        // Set geoCode
-        apData.set('geocode', geoCode);
-        // Set deviceid
-        apData.set('deviceid', message.did);
-        
-        for(var p in message) {
-          if (p != 'gc' && p != 'did' && p != 'cid') {
-            sys.puts(p);
-            if (typeof message[p] == 'object') {
-              apData.attr(p, JSON.stringify(message[p]));
-            } else {
-              apData.attr(p, message[p].toString());
-            }
-          }
-        }
-
-        // Save the object
-        apData.save().then(function() {
-          sys.puts("New data article created with id : " + apData.id());
-          if(socket.writable) socket.write("200|" + message.cid + "|" + apData.id());
-        }, function(err) {
-          sys.puts(JSON.stringify(err));
-          if(socket.writable) socket.write("500|" + message.cid);
-        });
-
-        return;
-      }
+      return;
     } 
     if(socket.writable) socket.write("400");
   });

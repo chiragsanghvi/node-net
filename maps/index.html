@@ -96,9 +96,9 @@
             otherMarker.size = new google.maps.Size(9, 9);
             otherMarker.anchor = new google.maps.Point(4.5, 4.5);
 
-
             var path = null;
             
+            var coordinates = [];
 
             var getCooodinatesWithinRadius = function(radius, markers) {
                 var $lat = markers[0].position.lat();
@@ -117,6 +117,8 @@
                 return res;
             }
 
+            var lastFetchedId = null;
+
             function initializeMaps(deviceId) {
                 $('#btnSearch').val('Searching...').attr('disabled', true);
 
@@ -126,25 +128,26 @@
                     schema: 'data',
                     fields: ["geocode","__utcdatecreated"]
                 });
-  
-                query.fetch().then(function(results) {
-                    $('#btnSearch').val('Plotting..');
-                    for (var i = 0; i < markers.length; i++) {
-                        markers[i].setMap(null);
-                    }
 
-                    markers = [];
+                if (lastFetchedId) {
+                    query.filter(query.filter().And(Appacitive.Filter.Property('__id').greaterThan(lastFetchedId)));
+                }
+
+                query.fetch().then(function(results) {
+                    try{
+                    $('#btnSearch').val('Plotting..');
+                    /*for (var i = 0; i < markers.length; i++) {
+                        markers[i].setMap(null);
+                    }*/
+
+                    //markers = [];
                     var infowindow = new google.maps.InfoWindow(); 
                     var marker, i;
                     //var bounds = new google.maps.LatLngBounds();
 
-                    coordinates = [];
-
                     var latlng = new google.maps.LatLng(10,20);
                     results.reverse();
 
-                    if (path) path.setMap(null);
-                    
                     var len = results.length -1;
                     for (var i = 0; i < results.length; i++) { 
                         var gc = getGeocode(results[i].get("geocode"));
@@ -153,13 +156,15 @@
                                 var m = markers.pop();
                                 m.setIcon(currentMarker);
                                 markers.push(m);
+                                lastFetchedId = results[i].id();
                             }
                             continue;
                         } else {
-
+                            
                             latlng = new google.maps.LatLng(gc.lat, gc.lng);
 
                             coordinates.push(latlng);
+                            
                             //bounds.extend(latlng);
                             if (i == len) {
                                 marker = new google.maps.Marker({
@@ -169,6 +174,8 @@
                                     icon: currentMarker,
                                     optimized: false
                                 });
+                                lastFetchedId = results[i].id();
+
                             } else {
                                 marker = new google.maps.Marker({
                                     position: latlng,
@@ -187,26 +194,26 @@
                     }
 
                     if (!initialized) {
-                      map.setZoom(12);
-                      map.setCenter(latlng);
+                        map.setZoom(12);
+                        map.setCenter(latlng);
+                    
+                        path = new google.maps.Polyline({
+                            path: coordinates,
+                            geodesic: true,
+                            strokeColor: "#0093c8",
+                            strokeOpacity: 1.0,
+                            strokeWeight: 2
+                        });
+
+                        path.setMap(map);
                     }
                     initialized = true;
-
-                    path = new google.maps.Polyline({
-                        path: coordinates,
-                        geodesic: true,
-                        strokeColor: "#0093c8",
-                        strokeOpacity: 1.0,
-                        strokeWeight: 2
-                    });
-
-                    path.setMap(map);
+                    }catch(e) {
+                        debugger;
+                    }
                     //map.fitBounds(bounds);
                 }, function() {
                     $('#btnSearch').val('Plotting..');
-                    for (var i = 0; i < markers.length; i++) {
-                        markers[i].setMap(null);
-                    }
                 });
             }
 

@@ -4,7 +4,7 @@
  * MIT license  : http://www.apache.org/licenses/LICENSE-2.0.html
  * Project      : https://github.com/chiragsanghvi/JavascriptSDK
  * Contact      : support@appacitive.com | csanghvi@appacitive.com
- * Build time 	: Tue Dec  3 15:19:17 IST 2013
+ * Build time 	: Mon Dec  9 17:33:57 IST 2013
  */
 "use strict";
 
@@ -124,7 +124,7 @@ if ( !Date.prototype.toISOString ) {
         };
 
     }() );
-}
+};
 
 String.addSlashes = function (str) {
     if (!str) return str;
@@ -144,10 +144,14 @@ String.stripSlashes = function (str) {
     return str;
 };
 
+if (typeof console === 'undefined' || console === null) {
+    console = { log: function() {}, dir: function() {} };
+}
+
 var _type = function (o) {
 
     // handle null in old IE
-    if (o === null) {
+    if (o === null || typeof o === 'undefined' || o === 'undefined') {
         return 'null';
     }
 
@@ -200,6 +204,10 @@ for (var i = 0; i < types.length; i++) {
 _type['isNullOrUndefined'] = function(o) {
     return _type(o) == 'null' || _type(o) == 'undefined';
 };
+
+_type['isNumeric'] = function(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+}
 // monolithic file
 
 var global = {};
@@ -2167,9 +2175,13 @@ Depends on  NOTHING
         if (type) this.type = type;
         else this.type = typeof this.value; 
 
+        if (this.type === 'number') {
+          if (!_type.isNumeric(this.value)) throw new Error("Value should be numeric for filter expression");  
+        }
+
         this.getValue = function() {
             if (this.type === 'string') return "'" + this.value + "'";
-            else if (this.type === 'number' || _type.isBoolean(this.value)) return this.value;  
+            else if (this.type === 'number' || _type.isBoolean(this.value))return this.value;  
             else if (this.type === 'object' && this.value instanceof date) return "datetime('" + Appacitive.Date.toISOString(this.value) + "')";
             else return this.value.toString();
         };
@@ -2234,7 +2246,7 @@ Depends on  NOTHING
 
         /* Helper functions for GreaterThan */
         context.greaterThan = function(value) {
-            return new _fieldFilter({ field: this.name, fieldType: this.type, value: new _primitiveFieldValue(value), operator: _operators.isGreaterThan });
+            return new _fieldFilter({ field: this.name, fieldType: this.type, value: new _primitiveFieldValue(value, 'number'), operator: _operators.isGreaterThan });
         };
 
         context.greaterThanDate = function(value) {
@@ -2252,7 +2264,7 @@ Depends on  NOTHING
 
         /* Helper functions for GreaterThanEqualTo */
         context.greaterThanEqualTo = function(value) {
-            return new _fieldFilter({ field: this.name, fieldType: this.type, value: new _primitiveFieldValue(value), operator: _operators.isGreaterThanEqualTo });
+            return new _fieldFilter({ field: this.name, fieldType: this.type, value: new _primitiveFieldValue(value, 'number'), operator: _operators.isGreaterThanEqualTo });
         };
 
         context.greaterThanEqualToDate = function(value) {
@@ -2269,7 +2281,7 @@ Depends on  NOTHING
 
         /* Helper functions for LessThan */
         context.lessThan = function(value) {
-            return new _fieldFilter({ field: this.name, fieldType: this.type, value: new _primitiveFieldValue(value), operator: _operators.isLessThan });
+            return new _fieldFilter({ field: this.name, fieldType: this.type, value: new _primitiveFieldValue(value, 'number'), operator: _operators.isLessThan });
         };
 
         context.lessThanDate = function(value) {
@@ -2287,7 +2299,7 @@ Depends on  NOTHING
 
         /* Helper functions for LessThanEqualTo */
         context.lessThanEqualTo = function(value) {
-            return new _fieldFilter({ field: this.name, fieldType: this.type, value: new _primitiveFieldValue(value), operator: _operators.isLessThanEqualTo });
+            return new _fieldFilter({ field: this.name, fieldType: this.type, value: new _primitiveFieldValue(value, 'number'), operator: _operators.isLessThanEqualTo });
         };
 
         context.lessThanEqualToDate = function(value) {
@@ -2325,7 +2337,7 @@ Depends on  NOTHING
 
         /* Helper functions for between */
         context.between = function(val1, val2) {
-            return new _betweenFilter({ field: this.name, fieldType: this.type, val1: new _primitiveFieldValue(val1), val2: new _primitiveFieldValue(val2), operator: _operators.between });
+            return new _betweenFilter({ field: this.name, fieldType: this.type, val1: new _primitiveFieldValue(val1, 'number'), val2: new _primitiveFieldValue(val2, 'number'), operator: _operators.between });
         };
 
         context.betweenDate = function(val1, val2) {
@@ -2502,13 +2514,13 @@ Depends on  NOTHING
 	**/
 	var SortQuery = function(o) {
 		var options = o || {};
-		var _orderBy = '__UtcLastUpdatedDate';
+		var _orderBy = null;
 		var _isAscending = false;
 
 		//define getter/setter for orderby
 		this.orderBy =  function() { 
-			if (arguments.length === 1) {
-				_orderBy = arguments[0] || '__UtcLastUpdatedDate';
+			if (arguments.length === 1 && _type.isString(arguments[0])) {
+				_orderBy = arguments[0];
 				return this;
 			}
 			return _orderBy; 
@@ -2527,7 +2539,11 @@ Depends on  NOTHING
 		this.isAscending(options.isAscending);
 	};
 	SortQuery.prototype.toString = function() {
-		return 'orderBy=' + this.orderBy() + '&isAsc=' + this.isAscending();
+		if (this.orderBy() && this.orderBy().length > 0) {
+			return 'orderBy=' + this.orderBy() + '&isAsc=' + this.isAscending();
+		} else {
+			return '';
+		}
 	};
 
 	// base query
@@ -2654,7 +2670,11 @@ Depends on  NOTHING
 
 		this.getQueryString = function() {
 
-			var finalUrl = _pageQuery.toString() + '&' + _sortQuery.toString();
+			var finalUrl = _pageQuery.toString();
+
+			var sortQuery =  _sortQuery.toString();
+
+			if (sortQuery) finalUrl += '&' + sortQuery;
 
 			if (this.filter()) {
 				var filter = this.filter().toString();
@@ -3198,10 +3218,15 @@ Depends on  NOTHING
 					des[property] = global.Appacitive.Date.toISOString(src[property]);
 				} else if (_type.isObject(src[property]))  {
 					
-					if (!des[property]) des[property] = {};
+					if (src[property] instanceof global.Appacitive.GeoCoord) {
+		 				des[property] = src[property].toString();
+		 			} else {
 
-					for (var p in src[property]) {
-						des[property][p] = src[property][p];
+						if (!des[property]) des[property] = {};
+
+						for (var p in src[property]) {
+							des[property][p] = src[property][p];
+						}
 					}
 				} else if (_type.isArray(src[property])) {
 					des[property] = [];
@@ -3332,6 +3357,7 @@ Depends on  NOTHING
 		//accessor function to get changed attributes
 		var _getChangedAttributes = function() {
 			if (!article.__attributes) return null;
+			if (!_snapshot.__attributes) return article.__attributes;
 
 			var isDirty = false;
 			var changeSet = JSON.parse(JSON.stringify(_snapshot.__attributes));
@@ -3558,6 +3584,18 @@ Depends on  NOTHING
 			}, "string": function(value) { 
 				if (value) return value.toString();
 				return value;
+			}, "geocode": function(value) {
+				// value is not string or its length is 0, return false
+				if (!_type.isString(value) || value.trim().length == 0) return false;
+				  
+				// Split value string by ,
+				var split = value.split(',');
+
+				// split length is not equal to 2 so return false
+				if (split.length !== 2 ) return false;
+
+				// validate the value
+				return new global.Appacitive.GeoCoord(split[0], split[1]);
 			}
 		};
 
