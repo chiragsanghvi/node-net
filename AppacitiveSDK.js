@@ -4,7 +4,7 @@
  * MIT license  : http://www.apache.org/licenses/LICENSE-2.0.html
  * Project      : https://github.com/chiragsanghvi/JavascriptSDK
  * Contact      : support@appacitive.com | csanghvi@appacitive.com
- * Build time 	: Mon Dec  9 17:33:57 IST 2013
+ * Build time 	: Tue Dec 10 10:11:13 IST 2013
  */
 "use strict";
 
@@ -1910,6 +1910,30 @@ Depends on  NOTHING
           if (lat < -90.0 || lat > 90.0) throw new Error("Latitude " + lat + " should be in range of  -90.0 to 90.");
           if (lng < -180.0 || lng > 180.0) throw new Error("Latitude " + lng + " should be in range of  -180.0 to 180.");
         };
+
+        // Parses string geocode value and return Appacitive geocode object or false
+        var getGeocode = function(geoCode) {
+          // geoCode is not string or its length is 0, return false
+          if (typeof geoCode !== 'string' || geoCode.length == 0) return false;
+          
+          // Split geocode string by ,
+          var split = geoCode.split(',');
+
+          // split length is not equal to 2 so return false
+          if (split.length !== 2 ) return false;
+
+          // validate the geocode
+          try {
+            return new Appacitive.GeoCoord(split[0], split[1]);
+          } catch(e) {
+            return false;
+          }
+        };
+
+        if (_type.isString(lat) && !lng) {
+            var geoCode = getGeocode(lat);
+            if (geoCode) return geoCode;
+        }
 
         if (!lat || !lng) {
           this.lat = 0, this.lng = 0;

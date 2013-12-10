@@ -31,6 +31,7 @@ var clientTimer = setInterval(function() {
                 did: "test123",
                 cid: "temp" + cnt,
                 gc: "10,20",
+                d: '3',
                 t : (requestCnt%10) == 0 ? 1 : 0
             };
 

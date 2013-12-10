@@ -17,18 +17,9 @@ console.log("AppacitiveSDK loaded");
 
 // Parses string geocode value and return Appacitive geocode object or false
 var getGeocode = function(geoCode) {
-  // geoCode is not string or its length is 0, return false
-  if (typeof geoCode !== 'string' || geoCode.length == 0) return false;
-  
-  // Split geocode string by ,
-  var split = geoCode.split(',');
-
-  // split length is not equal to 2 so return false
-  if (split.length !== 2 ) return false;
-
   // validate the geocode
   try {
-    return new Appacitive.GeoCoord(split[0], split[1]);
+    return new Appacitive.GeoCoord(geoCode);
   } catch(e) {
     return false;
   }
@@ -63,7 +54,7 @@ var sendPushNotification = function(data) {
     },
     "data": {
         // message to send
-        "alert": "Panic button pressed for device id" + data.get('deviceid')
+        "alert": "Panic button pressed for device id " + data.get('deviceid')
     }
   };
 
@@ -131,14 +122,20 @@ var updateTrackerPosition = function(socket, message, geoCode) {
 	};
 
 	var updateTracker = function() {
-		socket.tracker.set('geocode', geoCode);
-		if (socket.tracker.isNew()) {
-			socket.tracker.save(function() {
+    if (socket.tracker.isNew()) {
+		  socket.tracker.set('geocode', geoCode);
+    
+    	socket.tracker.save(function() {
 				sendPanicMessage();
 			});
 			return;
-		} else socket.tracker.save();
-		sendPanicMessage();
+		} else {
+      if (geoCode.lat == 0 && geoCode.lng == 0) {
+        socket.tracker.set('geocode', geoCode);
+        socket.tracker.save();
+      }
+		}
+    sendPanicMessage();
 	};
 
 	if (socket.tracker) {
@@ -173,13 +170,19 @@ exports.addData = function(message, socket) {
       // If geoCode is valid then create
       if (geoCode) {
 
-      	if (geoCode.lat == 0 && geoCode.lng == 0) return;
+      	if (geoCode.lat == 0 && geoCode.lng == 0) {
+          if (message.t && message.t == '1') {
+            updateTrackerPosition(socket, message, geoCode);
+          }
+          if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + socket.apData ? socket.apData.id() : 0);
+          return;
+        } 
 
       	try {
-			updateTrackerPosition(socket, message, geoCode);
-    	} catch(e) {
-    		sys.puts(e.message);
-    	}
+  			  updateTrackerPosition(socket, message, geoCode);
+      	} catch(e) {
+      		sys.puts(e.message);
+      	}
 
     	// Get window and displacement from current window
         var diffWindow = epoch.getWindowWithDisplacement();
@@ -190,7 +193,7 @@ exports.addData = function(message, socket) {
 	        var checkins = apData.tryGet('checkins', '');
 
 	        //Append geocode
-	        checkins += (checkins.length == 0 ? '' : '|') + geoCode.toString() + 'T' + diffWindow.displacement;
+	        checkins += (checkins.length == 0 ? '' : '|') + geoCode.toString() + 'D' + ((message.d) ? message.d : 3) + 'T' + diffWindow.displacement;
 
 	        // Set checkins
 	        apData.set('checkins', checkins);
