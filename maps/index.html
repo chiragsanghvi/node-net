@@ -24,20 +24,101 @@
                 z-index: 2;
                 background: WHITE;
             }
+
+            @media (max-width: 460px) {
+                #btnSearch {
+                    margin-bottom: 10px;
+                    position: initial !important;
+                }
+            }
+            #map img {
+              max-width: none !important;
+            }
+
+            #map label { 
+              width: auto; display:inline; 
+            } 
         </style> 
+        <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" media="screen" href="http://tarruda.github.com/bootstrap-datetimepicker/assets/css/bootstrap-datetimepicker.min.css">
+
         <script type="text/javascript" src="scripts/AppacitiveSDK.min.js"></script>
         <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
         <script type="text/javascript" src="scripts/jquery.js"></script>
+        <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
+        </script> 
+        <script type="text/javascript" src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js">
+        </script>
+        <script type="text/javascript" src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.min.js">
+        </script>
+        <script type="text/javascript" src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.pt-BR.js">
+        </script>
     </head>
-    <body>
+    <body style="padding:0px !important;">
         <div id="map" style="float: left;"></div>
-        <div style="position:absolute;width:94%;background-color:gray;padding:2px 0px 2px 25px">
-            <span>Device Id: </span>
-            <input type="text" id="txtDeviceId" style="width:130px;">
-            <input type="button" id="btnSearch" style="width:70px;" value="search"> 
+        <div style="position:absolute;width:100%;background-color:gray;padding-top:10px;">
+            <input type="text" lass="form-control" id="txtDeviceId" placeholder="Device Id" style="width:130px;margin-left:10px;">
+            <div id="datetimepicker" class="input-append date" style="margin-left: 10px;display: inline;">
+                <input type="text" style="width:75px;"></input>
+                <span class="add-on">
+                  <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+                </span>
+            </div>
+            <div style="margin-left: 10px;display: inline;">
+                <select id="slctTime" style="width:75px;"> </select>
+            </div>
+            <div style="margin-left: 10px; display: inline;">
+                <input type="button" id="btnSearch" class="btn btn-default" style="top: 10px;position:absolute;" value="search"/>
+            </div>
         </div>
         <!-- bring in the google maps library -->
- 
+        <script type="text/javascript">
+          var slct = $('#slctTime');
+
+          for(var i =0 ;i < 24 ;i++) {
+            if (i/10 >= 1)  {
+                slct.append('<option value="' + i  + '">' + i + ":00</option>");
+            } else {
+                slct.append('<option value="' + i  + '">0' + i + ":00</option>");
+            }
+          }
+
+
+          var d = new Date(); 
+          $('#datetimepicker').datetimepicker({
+            maskInput: true,
+            format: 'dd/MM/yyyy',
+            language: 'pt-BR',
+            pickTime: false
+          });
+          
+          picker = $('#datetimepicker').data('datetimepicker');
+          picker.setLocalDate(d);
+
+          var hours = d.getHours();
+          $("#slctTime option[value=" + hours +"]").attr("selected","selected")
+
+          var appEpochTime = Math.floor(new Date("2013-12-01T00:00:00.000Z").getTime() / 1000);
+          var windowTime = 3600; // In seconds
+
+          getWindowWithDisplacement = function(d) {
+            // Get existingtime in seconds
+            var existingTime = Math.floor(d.getTime() / 1000);
+            
+            // Calculate window
+            var diff = existingTime - appEpochTime;
+            var remainder = diff % windowTime;
+            var window = diff;
+            if (remainder !== 0) window = diff - remainder;
+            
+            return {
+                displacement: remainder,
+                window: Math.floor(window/windowTime)
+            };
+         };
+
+        </script>
+
           <script type="text/javascript">
 
             // Initialize it with apikey, appId and env
@@ -71,12 +152,12 @@
                 mapTypeControl: false,
                 panControl: true,
                 panControlOptions: {
-                    position: google.maps.ControlPosition.RIGHT_TOP
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM
                 },
                 zoomControl: true,
                 zoomControlOptions: {
                     style: google.maps.ZoomControlStyle.DEFAULT,
-                    position: google.maps.ControlPosition.RIGHT_TOP
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM
                 },
                 center: new google.maps.LatLng(15,75),
                 zoom:2
@@ -88,6 +169,10 @@
 
             var markers = [];
 
+            var currentInfowindow = new google.maps.InfoWindow({
+                pixelOffset: new google.maps.Size(0, 20)
+            }); 
+
             var currentMarker = new google.maps.MarkerImage("images/current.gif");
             currentMarker.size = new google.maps.Size(60, 60);
             currentMarker.anchor = new google.maps.Point(30, 30);
@@ -96,9 +181,21 @@
             otherMarker.size = new google.maps.Size(9, 9);
             otherMarker.anchor = new google.maps.Point(4.5, 4.5);
 
+            var startMarker =  new google.maps.MarkerImage("images/bluedot.png");
+            startMarker.size = new google.maps.Size(9, 9);
+            startMarker.anchor = new google.maps.Point(4.5, 4.5);
+
             var path = null;
             
             var coordinates = [];
+
+            var currentLocMarker = null;
+
+            var contentString = '<div id="content">'+
+                              '<div id="bodyContent">'+
+                              '{0}'+
+                              '</div>'+
+                              '</div>';
 
             var getCooodinatesWithinRadius = function(radius, markers) {
                 var $lat = markers[0].position.lat();
@@ -120,83 +217,149 @@
             var lastFetchedId = null;
 
             function initializeMaps(deviceId) {
-                $('#btnSearch').val('Searching...').attr('disabled', true);
+
+                if (deviceId.trim().length == 0) return;
+
+                if(currentLocMarker) currentLocMarker.setMap(null);
+
+                $('#btnSearch').val('Searching...');
+
+                var date = $('#datetimepicker').data('datetimepicker').getLocalDate();
+                date.setHours($("#slctTime").val());
+
+                var win = getWindowWithDisplacement(date);
 
                 var query = Appacitive.Article.findAll({
-                    pageSize: 200,
-                    filter: Appacitive.Filter.Property('deviceid').like(deviceId),
-                    schema: 'data',
-                    fields: ["geocode","__utcdatecreated"]
+                    filter: Appacitive.Filter.And(
+                                Appacitive.Filter.Property('deviceid').like(deviceId),
+                                Appacitive.Filter.Property('window').equalToNumber(win.window)
+                            ),
+                    schema: 'checkins',
+                    fields: ["geocode", "checkins", "window"],
+                    orderBy: '__utclastupdateddate'
                 });
 
-                if (lastFetchedId) {
-                    query.filter(query.filter().And(Appacitive.Filter.Property('__id').greaterThan(lastFetchedId)));
-                }
+                var currentLocQuery = new Appacitive.Queries.FindAllQuery({
+                    pageSize: 1,
+                    schema: 'tracker',
+                    filter: Appacitive.Filter.Property('deviceid').equalTo(deviceId),
+                    fields: ["geocode", "__utclastupdateddate"]
+                });
 
-                query.fetch().then(function(results) {
-                    try{
-                    $('#btnSearch').val('Plotting..');
-                    /*for (var i = 0; i < markers.length; i++) {
-                        markers[i].setMap(null);
-                    }*/
 
-                    //markers = [];
-                    var infowindow = new google.maps.InfoWindow(); 
-                    var marker, i;
-                    //var bounds = new google.maps.LatLngBounds();
+                currentLocQuery.fetch().then(function(location) {
+                    var gc = getGeocode(location[0].get('geocode'));
+                    currentLocMarker = new google.maps.Marker({
+                        position:  new google.maps.LatLng(gc.lat, gc.lng),
+                        icon: currentMarker,
+                        map: map,
+                        optimized: false
+                    });
 
-                    var latlng = new google.maps.LatLng(10,20);
-                    results.reverse();
+                     google.maps.event.addListener(currentLocMarker, 'click', function() {
+                        var content = location[0].get('__utclastupdateddate', 'datetime');
+                        currentInfowindow.setContent(String.format(contentString,content.toString()));
+                        currentInfowindow.open(map, currentLocMarker);
+                     });
+                });
 
-                    var len = results.length -1;
-                    for (var i = 0; i < results.length; i++) { 
-                        var gc = getGeocode(results[i].get("geocode"));
-                        if (gc.lat == 0 && gc.lng == 0) {
-                            if (i == len) {
-                                var m = markers.pop();
-                                m.setIcon(currentMarker);
-                                markers.push(m);
-                                lastFetchedId = results[i].id();
-                            }
-                            continue;
-                        } else {
+                query.fetch().then(function(checkins) {
+                    try {
+                        
+                        $('#btnSearch').val('Search');
+                        for (var i = 0; i < markers.length; i++) {
+                            markers[i].setMap(null);
+                        }
+
+                        markers = [];
+                        var infowindow = new google.maps.InfoWindow({
+                            pixelOffset: new google.maps.Size(-1, 0)
+                        }); 
+                        var marker, i;
+                        //var bounds = new google.maps.LatLngBounds();
+
+                        if (path) path.setMap(null);
+
+                        var latlng = new google.maps.LatLng(10,20);
+                        
+                        coordinates = [];
+
+                        var unique = [];
+
+                        if (checkins.length == 0) return;
+
+                        var checkin = checkins[0];
+                        var hourWindow = checkin.get('window','number');
+
+                        checkins = checkin.get('checkins');
+
+                        var results = checkins.split('|');
+
+                        var len = results.length -1;
+    
+                        hourWindow = ((hourWindow * 3600) + appEpochTime);
+
+                        // Calculate unique coordinates
+                        results.forEach(function(r, i) {
+                            var split = r.split('D')
+                            if (split.length !== 2) return;
+                            var gc = getGeocode(split[0]);
                             
+                            split = split[1].split('T');
+                            var dim = split[0];
+                            if (dim.trim() !== '3') return;
+                            
+                            var dis = parseInt(split[1]);
+
+                            coordinates.push(new google.maps.LatLng(gc.lat, gc.lng));
+
+                            var res = unique.filter(function(u) {
+                                return (u.gc.lat == gc.lat && u.gc.lng == gc.lng); 
+                            });
+                            var marker = {
+                                gc : gc,
+                                date: [new Date((hourWindow + dis) * 1000)]
+                            }; 
+                            if (res.length > 0) {
+                                res[0].date.push(marker.date[0]);
+                            } else {
+                                unique.push(marker);
+                            }
+                        });
+
+                        for (var i = 0; i < unique.length; i++) { 
+                            var gc = unique[i].gc;
                             latlng = new google.maps.LatLng(gc.lat, gc.lng);
 
-                            coordinates.push(latlng);
-                            
                             //bounds.extend(latlng);
-                            if (i == len) {
-                                marker = new google.maps.Marker({
-                                    position: latlng,
-                                    map: map,
-                                    animation: google.maps.Animation.DROP,
-                                    icon: currentMarker,
-                                    optimized: false
-                                });
-                                lastFetchedId = results[i].id();
-
-                            } else {
-                                marker = new google.maps.Marker({
-                                    position: latlng,
-                                    map: map,
-                                    icon: otherMarker
-                                });
-                            }
+                            
+                            var image = otherMarker
+                            if (i == 0) {
+                                image = startMarker;
+                            } 
+                            marker = new google.maps.Marker({
+                                position: latlng,
+                                map: map,
+                                icon: image
+                            });
+                            
                             markers.push(marker);
+                            
                             google.maps.event.addListener(marker, 'click', (function(marker, j) {
                                 return function() {
-                                    infowindow.setContent(Appacitive.Date.parseISODate(results[j].get('__utcdatecreated')).toString());
+                                    var content = '';
+                                    unique[j].date.forEach(function(d) { content += d.toString() + '</br>' });
+                                    infowindow.setContent( String.format(contentString, content));
                                     infowindow.open(map, marker);
                                 }
                             })(marker, i));
                         }
-                    }
 
-                    if (!initialized) {
-                        map.setZoom(12);
-                        map.setCenter(latlng);
-                    
+                        if (!initialized) {
+                            map.setZoom(13);
+                            map.setCenter(latlng);
+                        }
+
                         path = new google.maps.Polyline({
                             path: coordinates,
                             geodesic: true,
@@ -206,23 +369,22 @@
                         });
 
                         path.setMap(map);
-                    }
-                    initialized = true;
-                    }catch(e) {
+                        initialized = true;
+                    } catch(e) {
                         debugger;
                     }
                     //map.fitBounds(bounds);
                 }, function() {
-                    $('#btnSearch').val('Plotting..');
+                    $('#btnSearch').val('Search');
                 });
             }
 
             $('#btnSearch').bind('click', function(){
                 
                 initializeMaps($('#txtDeviceId').val().trim());
-                timer = setInterval(function(){
+                /*timer = setInterval(function(){
                     initializeMaps($('#txtDeviceId').val().trim());
-                }, 20000);
+                }, 20000);*/
             });
 
           </script>

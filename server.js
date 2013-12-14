@@ -2,6 +2,7 @@
 var net = require('net'),
   sys = require('sys'),
   data = require('./data.js'),
+  Appacitive = require('./AppacitiveSDK.js'),
   Router = require('node-simple-router');
   
 // Keep track of the chat clients
@@ -23,6 +24,23 @@ var cleanInput = function (data) {
 };
 
 
+// Log initial message on server
+var logMessage = function(message) {
+  if (message && message.trim().length > 0) {
+    var log = new Appacitive.Article('log');
+    log.set('message', message);
+    var domain = require('domain').create();
+
+    domain.run(function(){
+      log.save();
+    });
+
+    domain.on('error', function() {
+      domain.dispose();
+    });
+  }
+};
+
 // Parses the message and performs specific operation
 var performOperation = function(message, socket) {
 
@@ -30,7 +48,7 @@ var performOperation = function(message, socket) {
   var domain = require('domain').create();
 
   // For logging message 
-  //logMessage(data.toString());
+  logMessage(data.toString());
 
   domain.on('error', function(err) {
     sys.puts("Error for " + socket.name + " : "  + err.message + '\n' + err.stack);
@@ -49,7 +67,7 @@ var performOperation = function(message, socket) {
     }
 
     // If message object is not formed or it doesn't contains did(deviceid) and gc(geocode), then directly send a "400" response
-    if (message && message.did && message.gc) {
+    if (message && message.did) {
       
       // Set this socket for a particular device 
       if (!deviceSockets[message.did]) deviceSockets[message.did] = { count: 0}
@@ -66,6 +84,7 @@ var performOperation = function(message, socket) {
 
       return;
     } 
+
     if(socket.writable) socket.write("400");
   });
 };
@@ -248,6 +267,7 @@ router.get('/devices', function(req, res){
 // Route to get noOfConnections for a device
 router.get('/devices/:deviceId', function(req, res){
   var deviceSocket = deviceSockets[req.params.deviceId];
+  res.writeHead(200, {'Content-Type': 'application/json'});
   if (deviceSocket) {
     var connections = [];
     for (var conn in deviceSocket) {
@@ -255,41 +275,17 @@ router.get('/devices/:deviceId', function(req, res){
         connections.push({ id : conn, lastSeen: deviceSocket[conn]});
       }
     }
-    res.writeHead(200, {'Content-Type': 'application/json'});
+    
     res.end(JSON.stringify({ connections: connections, noOfConnections: deviceSocket.count }));
   } else {
-    res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(JSON.stringify({ noOfConnections: 0, connections: [] }));
   }
-});
-
-var static = require('node-static');
-var fileServer = new static.Server('./maps');
-
-router.get('/', function(request, response) {
-  fileServer.serve(request, response);
-});
-
-router.get('/scripts/AppacitiveSDK.min.js', function(request, response) {
-  fileServer.serve(request, response);
-});
-
-router.get('/images/dot.png', function(request, response) {
-  fileServer.serve(request, response);
-});
-
-router.get('/images/current.gif', function(request, response) {
-  fileServer.serve(request, response);
-});
-
-router.get('/scripts/jquery.js', function(request, response) {
-  fileServer.serve(request, response);
 });
 
 // Start an HTTP Server for logs with router
 var httpServer = require('http').createServer(router);
 
-// Start listening on 8082
-httpServer.listen(8082);
+// Start listening on 8081
+httpServer.listen(8081);
 
-console.log("HTTP Server running at port 8082\n");
+console.log("HTTP Server running at port 8081\n");

@@ -5,6 +5,6 @@ require('http').createServer(function (request, response) {
     //request.addListener('end', function () {
         fileServer.serve(request, response);
     //});
-}).listen(8084);
+}).listen(8082);
 
-console.log("Server started on 8084");
+console.log("Server started on 8082");

@@ -102,7 +102,7 @@ var updateTrackerPosition = function(socket, message, geoCode) {
 	
 	var sendPanicMessage = function() {
 		// If message type is panic then set it in type
-        if (message.t && message.t == '1') {
+      if (message.t && message.t == '1') {
           var panic = new Appacitive.Article('panic').set('geocode', geoCode);
           var tracker_history = new Appacitive.Connection({
           	relation: 'panic_history',
@@ -118,19 +118,19 @@ var updateTrackerPosition = function(socket, message, geoCode) {
           tracker_history.save();
 
           sendPushNotification(socket.tracker);
-        } 
+      } 
 	};
 
 	var updateTracker = function() {
     if (socket.tracker.isNew()) {
 		  socket.tracker.set('geocode', geoCode);
-    
-    	socket.tracker.save(function() {
+      
+      socket.tracker.save(function() {
 				sendPanicMessage();
 			});
 			return;
 		} else {
-      if (geoCode.lat == 0 && geoCode.lng == 0) {
+      if (geoCode.lat !== 0 && geoCode.lng !== 0) {
         socket.tracker.set('geocode', geoCode);
         socket.tracker.save();
       }
@@ -152,11 +152,13 @@ var updateTrackerPosition = function(socket, message, geoCode) {
 
 	query.fetch().then(function(results) {
 		if (results.total == 0) {
+      sys.puts("Creating tracker");
 			socket.tracker = new Appacitive.Article('tracker');
 		} else {
-			socket.tracker = results[0];
+			sys.puts("Found tracker with id " + results[0].id());
+      socket.tracker = results[0];
 		}
-		socket.tracker.set('deviceid', message.did);
+    socket.tracker.set('deviceid', message.did);
 		updateTracker();
 	}, function(err) {
 		sys.puts(JSON.stringify(err));
@@ -184,7 +186,7 @@ exports.addData = function(message, socket) {
       		sys.puts(e.message);
       	}
 
-    	// Get window and displacement from current window
+    	  // Get window and displacement from current window
         var diffWindow = epoch.getWindowWithDisplacement();
 
         findDataForWindow(socket.apData, diffWindow.window, message.did).then(function(apData) {
@@ -235,6 +237,10 @@ exports.addData = function(message, socket) {
            if (socket.writable) socket.write("500|" + ((message.cid) ? message.cid : 0));
         });
 
+        return;
+    } else if (message.t && message.t == '1') {
+        updateTrackerPosition(socket, message, new Appacitive.GeoCoord(0, 0));
+        if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + socket.apData ? socket.apData.id() : 0);
         return;
     }
     if (socket.writable) socket.write("400");	
