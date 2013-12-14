@@ -23,7 +23,6 @@ var cleanInput = function (data) {
   return data.toString().replace(/(\r\n|\n|\r)/gm,"");
 };
 
-
 // Log initial message on server
 var logMessage = function(message) {
   if (message && message.trim().length > 0) {
@@ -84,7 +83,6 @@ var performOperation = function(message, socket) {
 
       return;
     } 
-
     if(socket.writable) socket.write("400");
   });
 };
@@ -267,7 +265,6 @@ router.get('/devices', function(req, res){
 // Route to get noOfConnections for a device
 router.get('/devices/:deviceId', function(req, res){
   var deviceSocket = deviceSockets[req.params.deviceId];
-  res.writeHead(200, {'Content-Type': 'application/json'});
   if (deviceSocket) {
     var connections = [];
     for (var conn in deviceSocket) {
@@ -275,17 +272,45 @@ router.get('/devices/:deviceId', function(req, res){
         connections.push({ id : conn, lastSeen: deviceSocket[conn]});
       }
     }
-    
+    res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(JSON.stringify({ connections: connections, noOfConnections: deviceSocket.count }));
   } else {
+    res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(JSON.stringify({ noOfConnections: 0, connections: [] }));
   }
+});
+
+var static = require('node-static');
+var fileServer = new static.Server('./maps');
+
+router.get('/', function(request, response) {
+  fileServer.serve(request, response);
+});
+
+router.get('/scripts/AppacitiveSDK.min.js', function(request, response) {
+  fileServer.serve(request, response);
+});
+
+router.get('/images/dot.png', function(request, response) {
+  fileServer.serve(request, response);
+});
+
+router.get('/images/bluedot.png', function(request, response) {
+  fileServer.serve(request, response);
+});
+
+router.get('/images/current.gif', function(request, response) {
+  fileServer.serve(request, response);
+});
+
+router.get('/scripts/jquery.js', function(request, response) {
+  fileServer.serve(request, response);
 });
 
 // Start an HTTP Server for logs with router
 var httpServer = require('http').createServer(router);
 
-// Start listening on 8081
-httpServer.listen(8081);
+// Start listening on 8082
+httpServer.listen(8082);
 
 console.log("HTTP Server running at port 8081\n");

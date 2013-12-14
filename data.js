@@ -25,23 +25,6 @@ var getGeocode = function(geoCode) {
   }
 }; 
 
-// Log initial message on server
-var logMessage = function(message) {
-  if (message && message.trim().length > 0) {
-    var log = new Appacitive.Article('log');
-    log.set('message', message);
-    var domain = require('domain').create();
-
-    domain.run(function(){
-      log.save();
-    });
-
-    domain.on('error', function() {
-      domain.dispose();
-    });
-  }
-};
-
 // Sends a push Notifcation
 var sendPushNotification = function(data) {
   var options = {
