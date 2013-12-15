@@ -28,6 +28,7 @@ var logMessage = function(message) {
   if (message && message.trim().length > 0) {
     var log = new Appacitive.Article('log');
     log.set('message', message);
+
     var domain = require('domain').create();
 
     domain.run(function(){
@@ -47,7 +48,7 @@ var performOperation = function(message, socket) {
   var domain = require('domain').create();
 
   // For logging message 
-  logMessage(data.toString());
+  logMessage(message.toString());
 
   domain.on('error', function(err) {
     sys.puts("Error for " + socket.name + " : "  + err.message + '\n' + err.stack);
