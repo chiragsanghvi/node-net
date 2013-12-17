@@ -4,7 +4,7 @@
  * MIT license  : http://www.apache.org/licenses/LICENSE-2.0.html
  * Project      : https://github.com/chiragsanghvi/JavascriptSDK
  * Contact      : support@appacitive.com | csanghvi@appacitive.com
- * Build time 	: Tue Dec 10 10:11:13 IST 2013
+ * Build time 	: Sun Dec 15 17:44:23 IST 2013
  */
 "use strict";
 
@@ -207,8 +207,7 @@ _type['isNullOrUndefined'] = function(o) {
 
 _type['isNumeric'] = function(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
-}
-// monolithic file
+}// monolithic file
 
 var global = {};
 
@@ -515,7 +514,7 @@ var global = {};
 						} catch(e) {}
 			            promise.fulfill(response, this);
 			        } else {
-			        	promise.reject(this);
+			        	promise.reject(this.responseText, this);
 			        }
 		    	}
 		    };
@@ -1040,13 +1039,13 @@ var global = {};
                 }
             }
         };
-        this.article = {
-            articleServiceUrl: 'article',
+        this.object = {
+            objectServiceUrl: 'object',
 
-            getSearchAllUrl: function (schemaName, queryParams, pageSize) {
+            getSearchAllUrl: function (typeName, queryParams, pageSize) {
                 var url = '';
 
-                url = String.format('{0}/search/{1}/all', this.articleServiceUrl, schemaName);
+                url = String.format('{0}/search/{1}/all', this.objectServiceUrl, typeName);
 
                 if (pageSize)
                     url = url + '?psize=' + pageSize;
@@ -1061,36 +1060,36 @@ var global = {};
                 return url;
             },
             getProjectionQueryUrl: function() {
-                return String.format('{0}/search/project', this.articleServiceUrl);
+                return String.format('{0}/search/project', this.objectServiceUrl);
             },
-            getPropertiesSearchUrl: function (schemaName, query) {
-                return String.format('{0}/search/{1}/all?properties={2}', this.articleServiceUrl, schemaName, query);
+            getPropertiesSearchUrl: function (typeName, query) {
+                return String.format('{0}/search/{1}/all?properties={2}', this.objectServiceUrl, typeName, query);
             },
-            getMultiGetUrl: function (schemaName, articleIds, fields) {
-                return String.format('{0}/{1}/multiGet/{2}?fields={3}', this.articleServiceUrl, schemaName, articleIds, _getFields(fields));
+            getMultiGetUrl: function (typeName, objectIds, fields) {
+                return String.format('{0}/{1}/multiGet/{2}?fields={3}', this.objectServiceUrl, typeName, objectIds, _getFields(fields));
             },
-            getCreateUrl: function (schemaName, fields) {
-                return String.format('{0}/{1}?fields={2}', this.articleServiceUrl, schemaName, _getFields(fields));
+            getCreateUrl: function (typeName, fields) {
+                return String.format('{0}/{1}?fields={2}', this.objectServiceUrl, typeName, _getFields(fields));
             },
-            getGetUrl: function (schemaName, articleId, fields) {
-                return String.format('{0}/{1}/{2}?fields={3}', this.articleServiceUrl, schemaName, articleId, _getFields(fields));
+            getGetUrl: function (typeName, objectId, fields) {
+                return String.format('{0}/{1}/{2}?fields={3}', this.objectServiceUrl, typeName, objectId, _getFields(fields));
             },
-            getUpdateUrl: function (schemaName, articleId, fields, revision) {
+            getUpdateUrl: function (typeName, objectId, fields, revision) {
                 if (!revision) {
-                    return String.format('{0}/{1}/{2}?fields={3}', this.articleServiceUrl, schemaName, articleId, _getFields(fields));
+                    return String.format('{0}/{1}/{2}?fields={3}', this.objectServiceUrl, typeName, objectId, _getFields(fields));
                 } else {
-                    return String.format('{0}/{1}/{2}?fields={3}&revision={4}', this.articleServiceUrl, schemaName, articleId, _getFields(fields), revision);
+                    return String.format('{0}/{1}/{2}?fields={3}&revision={4}', this.objectServiceUrl, typeName, objectId, _getFields(fields), revision);
                 }
             },
-            getDeleteUrl: function (schemaName, articleId, deleteConnections) {
+            getDeleteUrl: function (typeName, objectId, deleteConnections) {
                 if (deleteConnections === true ) {
-                    return String.format('{0}/{1}/{2}?deleteconnections=true', this.articleServiceUrl, schemaName, articleId);
+                    return String.format('{0}/{1}/{2}?deleteconnections=true', this.objectServiceUrl, typeName, objectId);
                 } else {
-                    return String.format('{0}/{1}/{2}', this.articleServiceUrl, schemaName, articleId);
+                    return String.format('{0}/{1}/{2}', this.objectServiceUrl, typeName, objectId);
                 }
             },
-            getMultiDeleteUrl: function (schemaName) {
-                return String.format('{0}/{1}/bulkdelete', this.articleServiceUrl, schemaName);
+            getMultiDeleteUrl: function (typeName) {
+                return String.format('{0}/{1}/bulkdelete', this.objectServiceUrl, typeName);
             }
         };
         this.connection = {
@@ -1119,10 +1118,10 @@ var global = {};
             getMultiDeleteUrl: function (relationName) {
                 return String.format('{0}/{1}/bulkdelete', this.connectionServiceUrl, relationName);
             },
-            getSearchByArticleUrl: function (relationName, articleId, label, queryParams) {
+            getSearchByArticleUrl: function (relationName, objectId, label, queryParams) {
                 var url = '';
 
-                url = String.format('{0}/{1}/find/all?label={2}&articleid={3}', this.connectionServiceUrl, relationName, label, articleId);
+                url = String.format('{0}/{1}/find/all?label={2}&objectid={3}', this.connectionServiceUrl, relationName, label, objectId);
                 // url = url + '?psize=1000';
                 if (typeof (queryParams) !== 'undefined' && queryParams.length > 0) {
                     for (var i = 0; i < queryParams.length; i = i + 1) {
@@ -1131,9 +1130,9 @@ var global = {};
                 }
                 return url;
             },
-            getConnectedArticles: function (relationName, articleId, queryParams) {
+            getConnectedArticles: function (relationName, objectId, queryParams) {
                 var url = '';
-                url = String.format('{0}/{1}/{2}/find', this.connectionServiceUrl, relationName, articleId);
+                url = String.format('{0}/{1}/{2}/find', this.connectionServiceUrl, relationName, objectId);
                 if (queryParams && queryParams.length && queryParams.length > 0) {
                     for (var x = 0; x < queryParams.length; x += 1) {
                         if (x === 0) {
@@ -1300,7 +1299,8 @@ var global = {};
                         global.Appacitive.logs.exceptions.push(error);
                         console.log(JSON.stringify({name: error.name, message: error.message, stack: error.stack}, null, 2));
                     }   
-                    promise.reject(error); 
+                    if (promise.calls.length == 0) throw error;
+                    else promise.reject(error);
                 }
 
                 if (value instanceof Promise || Promise.is(value) )  {
@@ -1575,11 +1575,11 @@ Depends on  NOTHING
 	"use strict";
 
 	global.Appacitive.config = {
-		apiBaseUrl: 'https://apis.appacitive.com/'
+		apiBaseUrl: 'https://apis.appacitive.com/v1.0/'
 	};
 
 	if (typeof XDomainRequest != 'undefined') {
-		global.Appacitive.config.apiBaseUrl = window.location.protocol + '//apis.appacitive.com/';
+		global.Appacitive.config.apiBaseUrl = window.location.protocol + '//apis.appacitive.com/v1.0/';
 	}
 
 }(global));
@@ -2491,8 +2491,7 @@ Depends on  NOTHING
         }
     };
 
-})(global);
-(function (global) {
+})(global);(function (global) {
 
 	"use strict";
 
@@ -2585,18 +2584,18 @@ Depends on  NOTHING
 		var _queryType = options.queryType || 'BasicQuery';
 		var _pageQuery = new PageQuery(o);
 		var _sortQuery = new SortQuery(o);
-		var _entityType = options.schema || options.relation;
-		var _etype = (options.relation) ? 'connection' : 'article';
-
+		var _entityType = options.type || options.relation;
+		var _etype = (options.relation) ? 'connection' : 'object';
+		
 		var self = this;
 
-		//define getter for type (article/connection)
+		//define getter for type (object/connection)
 		this.type = function() { return _etype; };
 
-		//define getter for basetype (schema/relation)
+		//define getter for basetype (type/relation)
 		this.entityType = function() { return _entityType; };
 
-		//define getter for querytype (basic,connectedarticles etc)
+		//define getter for querytype (basic,connectedobjects etc)
 		this.queryType = function() { return _queryType; };
 
 		//define getter for pagequery 
@@ -2758,7 +2757,7 @@ Depends on  NOTHING
 		var _parse = function(entities) {
 			var entityObjects = [];
 			if (!entities) entities = [];
-			var eType = (_etype === 'article') ? 'Article' : 'Connection';
+			var eType = (_etype === 'object') ? 'Object' : 'Connection';
 			
 			if (_entityType && _entityType.toLowerCase() == 'user') eType = 'User';
 			
@@ -2827,8 +2826,8 @@ Depends on  NOTHING
 
 		options = options || {};
 
-		if ((!options.schema && !options.relation) || (options.schema && options.relation)) 
-		    throw new Error('Specify either schema or relation for basic filter query');
+		if ((!options.type && !options.relation) || (options.type && options.relation)) 
+		    throw new Error('Specify either type or relation for basic filter query');
 
 		options.queryType = 'BasicFilterQuery';
 
@@ -2844,26 +2843,25 @@ Depends on  NOTHING
 	/** 
 	* @constructor
 	**/
-	global.Appacitive.Queries.ConnectedArticlesQuery = function(options) {
+	global.Appacitive.Queries.ConnectedObjectsQuery = function(options) {
 
 		options = options || {};
 
-		if (!options.relation) throw new Error('Specify relation for connected articles query');
-		if (!options.articleId) throw new Error('Specify articleId for connected articles query');
-		if (!options.schema) throw new Error('Specify schema of article id for connected articles query');
+		if (!options.relation) throw new Error('Specify relation for connected objects query');
+		if (!options.objectId) throw new Error('Specify objectId for connected objects query');
+		if (!options.type) throw new Error('Specify type of object id for connected objects query');
 		
+		var type = options.type;
+		delete options.type;
 
-		var schema = options.schema;
-		delete options.schema;
-
-		options.queryType = 'ConnectedArticlesQuery';
+		options.queryType = 'ConnectedObjectsQuery';
 
 		BasicQuery.call(this, options);
 
-		this.articleId = options.articleId;
+		this.objectId = options.objectId;
 		this.relation = options.relation;
-		this.schema = schema;
-		if (options.article instanceof global.Appacitive.Article) this.article = options.article;
+		this.type = type;
+		if (options.object instanceof global.Appacitive.Object) this.object = options.object;
 
 		this.returnEdge = true;
 		if (options.returnEdge !== undefined && options.returnEdge !== null && !options.returnEdge && !this.prev) this.returnEdge = false;
@@ -2881,39 +2879,39 @@ Depends on  NOTHING
 		};
 
 		this.toUrl = function() {
-			return global.Appacitive.config.apiBaseUrl + 'connection/' + this.relation + '/' + this.schema + '/' + this.articleId + '/find?' +
+			return global.Appacitive.config.apiBaseUrl + 'connection/' + this.relation + '/' + this.type + '/' + this.objectId + '/find?' +
 				this.getQueryString() + this.label + '&returnEdge=' + this.returnEdge;
 		};
 
 
 		var parseNodes = function(nodes, endpointA) {
-			var articles = [];
+			var objects = [];
 			nodes.forEach(function(o) {
-				var tmpArticle = null;
+				var tmpObject = null;
 				if (o.__edge) {
 					var edge = o.__edge;
 					delete o.__edge;
 
 					edge.__endpointa = endpointA;
 					edge.__endpointb = {
-						articleid: o.__id,
+						objectid: o.__id,
 						label: edge.__label,
-						type: o.__schematype
+						type: o.__type
 					};
 					delete edge.label;
 
 					var connection = new global.Appacitive.Connection(edge, true);
-					tmpArticle = new global.Appacitive.Article(o, true);
-					tmpArticle.connection = connection;
+					tmpObject = new global.Appacitive.Object(o, true);
+					tmpObject.connection = connection;
 				} else {
-					tmpArticle = new global.Appacitive.Article(o, true);
+					tmpObject = new global.Appacitive.Object(o, true);
 				}
-				articles.push(tmpArticle);
+				objects.push(tmpObject);
 			});
 			
-			if (self.article) self.article.children[self.relation] = articles;
+			if (self.object) self.object.children[self.relation] = objects;
 
-			return articles;
+			return objects;
 		};
 
 		this.fetch = function(callbacks) {
@@ -2924,7 +2922,7 @@ Depends on  NOTHING
 			    var _parse = parseNodes;
 			    if (self.prev) _parse = prevParseNodes;
 
-			    self.results = _parse(d.nodes ? d.nodes : [], { articleid : options.articleId, type: schema, label: d.parent });
+			    self.results = _parse(d.nodes ? d.nodes : [], { objectid : options.objectId, type: type, label: d.parent });
 		   	    self._setPaging(d.paginginfo);
 
 		   	    promise.fulfill(self.results, d.paginginfo);   
@@ -2937,9 +2935,9 @@ Depends on  NOTHING
 		return this;
 	};
 
-	global.Appacitive.Queries.ConnectedArticlesQuery.prototype = new BasicQuery();
+	global.Appacitive.Queries.ConnectedObjectsQuery.prototype = new BasicQuery();
 
-	global.Appacitive.Queries.ConnectedArticlesQuery.prototype.constructor = global.Appacitive.Queries.ConnectedArticlesQuery;
+	global.Appacitive.Queries.ConnectedObjectsQuery.prototype.constructor = global.Appacitive.Queries.ConnectedObjectsQuery;
 
 	/** 
 	* @constructor
@@ -2949,15 +2947,15 @@ Depends on  NOTHING
 		options = options || {};
 
 		if (!options.relation) throw new Error('Specify relation for GetConnectionsQuery query');
-		if (!options.articleId) throw new Error('Specify articleId for GetConnectionsQuery query');
+		if (!options.objectId) throw new Error('Specify objectId for GetConnectionsQuery query');
 		if (!options.label || options.label.trim().length === 0) throw new Error('Specify label for GetConnectionsQuery query');
-		if (options.schema) delete options.schema;
+		if (options.type) delete options.type;
 
 		options.queryType = 'GetConnectionsQuery';
 
 		BasicQuery.call(this, options);
 
-		this.articleId = options.articleId;
+		this.objectId = options.objectId;
 		this.relation = options.relation;
 		this.label = options.label;
 
@@ -2971,7 +2969,7 @@ Depends on  NOTHING
 		this.toUrl = function() {
 			return global.Appacitive.config.apiBaseUrl + 'connection/' + this.relation + '/find/all?' +
 				this.getQueryString() + 
-				'&articleid=' + this.articleId +
+				'&objectid=' + this.objectId +
 				'&label=' + this.label;
 		};
 
@@ -2985,21 +2983,21 @@ Depends on  NOTHING
 	/** 
 	* @constructor
 	**/
-	global.Appacitive.Queries.GetConnectionsBetweenArticlesQuery = function(options, queryType) {
+	global.Appacitive.Queries.GetConnectionsBetweenObjectsQuery = function(options, queryType) {
 
 		options = options || {};
 
-		if (!options.articleAId || !_type.isString(options.articleAId) || options.articleAId.length === 0) throw new Error('Specify valid articleAId for GetConnectionsBetweenArticlesQuery query');
-		if (!options.articleBId || !_type.isString(options.articleBId) || options.articleBId.length === 0) throw new Error('Specify articleBId for GetConnectionsBetweenArticlesQuery query');
-		if (options.schema) delete options.schema;
+		if (!options.objectAId || !_type.isString(options.objectAId) || options.objectAId.length === 0) throw new Error('Specify valid objectAId for GetConnectionsBetweenObjectsQuery query');
+		if (!options.objectBId || !_type.isString(options.objectBId) || options.objectBId.length === 0) throw new Error('Specify objectBId for GetConnectionsBetweenObjectsQuery query');
+		if (options.type) delete options.type;
 
-		options.queryType = queryType || 'GetConnectionsBetweenArticlesQuery';
+		options.queryType = queryType || 'GetConnectionsBetweenObjectsQuery';
 
 		BasicQuery.call(this, options);
 
-		this.articleAId = options.articleAId;
-		this.articleBId = options.articleBId;
-		this.label = (this.queryType() === 'GetConnectionsBetweenArticlesForRelationQuery' && options.label && _type.isString(options.label) && options.label.length > 0) ? '&label=' + options.label : '';
+		this.objectAId = options.objectAId;
+		this.objectBId = options.objectBId;
+		this.label = (this.queryType() === 'GetConnectionsBetweenObjectsForRelationQuery' && options.label && _type.isString(options.label) && options.label.length > 0) ? '&label=' + options.label : '';
 		this.relation = (options.relation && _type.isString(options.relation) && options.relation.length > 0) ? options.relation + '/' : '';
 		
 		this.toRequest = function() {
@@ -3010,27 +3008,27 @@ Depends on  NOTHING
 		};
 
 		this.toUrl = function() {
-			return global.Appacitive.config.apiBaseUrl + 'connection/' + this.relation + 'find/' + this.articleAId + '/' + this.articleBId + '?'
+			return global.Appacitive.config.apiBaseUrl + 'connection/' + this.relation + 'find/' + this.objectAId + '/' + this.objectBId + '?'
 				+ this.getQueryString() + this.label;
 		};
 
 		return this;
 	};
 
-	global.Appacitive.Queries.GetConnectionsBetweenArticlesQuery.prototype = new BasicQuery();
+	global.Appacitive.Queries.GetConnectionsBetweenObjectsQuery.prototype = new BasicQuery();
 
-	global.Appacitive.Queries.GetConnectionsBetweenArticlesQuery.prototype.constructor = global.Appacitive.Queries.GetConnectionsBetweenArticlesQuery;
+	global.Appacitive.Queries.GetConnectionsBetweenObjectsQuery.prototype.constructor = global.Appacitive.Queries.GetConnectionsBetweenObjectsQuery;
 
 	/** 
 	* @constructor
 	**/
-	global.Appacitive.Queries.GetConnectionsBetweenArticlesForRelationQuery = function(options) {
+	global.Appacitive.Queries.GetConnectionsBetweenObjectsForRelationQuery = function(options) {
 		
 		options = options || {};
 		
-		if (!options.relation) throw new Error('Specify relation for GetConnectionsBetweenArticlesForRelationQuery query');
+		if (!options.relation) throw new Error('Specify relation for GetConnectionsBetweenObjectsForRelationQuery query');
 		
-		var inner = new global.Appacitive.Queries.GetConnectionsBetweenArticlesQuery(options, 'GetConnectionsBetweenArticlesForRelationQuery');
+		var inner = new global.Appacitive.Queries.GetConnectionsBetweenObjectsQuery(options, 'GetConnectionsBetweenObjectsForRelationQuery');
 
 		inner.fetch = function(callbacks) {
 			var promise = global.Appacitive.Promise.buildPromise(callbacks);
@@ -3054,24 +3052,24 @@ Depends on  NOTHING
 
 		options = options || {};
 
-		if (!options.articleAId || !_type.isString(options.articleAId) || options.articleAId.length === 0) throw new Error('Specify valid articleAId for InterconnectsQuery query');
-		if (!options.articleBIds || !_type.isArray(options.articleBIds) || !(options.articleBIds.length > 0)) throw new Error('Specify list of articleBIds for InterconnectsQuery query');
-		if (options.schema) delete options.schema;
+		if (!options.objectAId || !_type.isString(options.objectAId) || options.objectAId.length === 0) throw new Error('Specify valid objectAId for InterconnectsQuery query');
+		if (!options.objectBIds || !_type.isArray(options.objectBIds) || !(options.objectBIds.length > 0)) throw new Error('Specify list of objectBIds for InterconnectsQuery query');
+		if (options.type) delete options.type;
 
 		options.queryType = 'InterconnectsQuery';
 
 		BasicQuery.call(this, options);
 
-		this.articleAId = options.articleAId;
-		this.articleBIds = options.articleBIds;
+		this.objectAId = options.objectAId;
+		this.objectBIds = options.objectBIds;
 		
 		this.toRequest = function() {
 			var r = new global.Appacitive.HttpRequest();
 			r.url = this.toUrl();
 			r.method = 'post';
 			r.data = {
-				article1id: this.articleAId,
-				article2ids: this.articleBIds
+				object1id: this.objectAId,
+				object2ids: this.objectBIds
 			};
 			return r;
 		};
@@ -3180,26 +3178,26 @@ Depends on  NOTHING
 					var edge = o.__edge;
 					delete o.__edge;
 
-					var tmpArticle = new global.Appacitive.Article(o, true);
-					tmpArticle.children = {};
+					var tmpObject = new global.Appacitive.Object(o, true);
+					tmpObject.children = {};
 					for (var key in children) {
-						tmpArticle.children[key] = [];
-						tmpArticle.children[key] = parseChildren(children[key].values, children[key].parent, tmpArticle.id);
+						tmpObject.children[key] = [];
+						tmpObject.children[key] = parseChildren(children[key].values, children[key].parent, tmpObject.id);
 					}
 
 					if (edge) {
 						edge.__endpointa = {
-							articleid : parentId,
+							objectid : parentId,
 							label: parentLabel
 						};
 						edge.__endpointb = {
-							articleid: tmpArticle.id(),
+							objectid: tmpObject.id(),
 							label: edge.__label
 						};
 						delete edge.__label;
-						tmpArticle.connection = new global.Appacitive.Connection(edge, true);
+						tmpObject.connection = new global.Appacitive.Connection(edge, true);
 					}
-					props.push(tmpArticle);
+					props.push(tmpObject);
 				});
 				return props;
 			};
@@ -3220,12 +3218,11 @@ Depends on  NOTHING
 		};
 	};
 
-})(global);
-(function (global) {
+})(global);(function (global) {
 
 	"use strict";
 
-	//base object for articles and connections
+	//base object for objects and connections
 	/**
 	* @constructor
 	**/
@@ -3286,27 +3283,23 @@ Depends on  NOTHING
 
 		var raw = {};
 		_copy(objectOptions, raw);
-		var article = raw;
+		var object = raw;
 
-		//will be used in case of creating an appacitive article for internal purpose
+		//will be used in case of creating an appacitive object for internal purpose
 		if (setSnapShot) {
-			_copy(article, _snapshot);
+			_copy(object, _snapshot);
 		}
 
 		if (!_snapshot.__id && raw.__id) _snapshot.__id = raw.__id;
 
-		//Check whether __schematype or __relationtype is mentioned and set type property
-		if (raw.__schematype) { 
-			raw.__schematype = raw.__schematype.toLowerCase();
-			this.entityType = raw.__schematype;
-			this.schema = this.entityType;
-			//if __schematype is user/device then set specific
-			if (raw.__schematype == 'user' || raw.__schematype == 'device') this.type = raw.__schematype;
-			else this.type = 'article';
+		//Check whether __type or __relationtype is mentioned and set type property
+		if (raw.__type) { 
+			raw.__type = raw.__type.toLowerCase();
+			this.entityType = 'type';
+			this.type = 'object';
 		} else if (raw.__relationtype) {
 			raw.__relationtype = raw.__relationtype.toLowerCase();
-			this.entityType = raw.__relationtype;
-			this.relation = this.entityType;
+			this.entityType = 'relation';
 			this.type = 'connection';
 		}
 
@@ -3315,7 +3308,7 @@ Depends on  NOTHING
 		this.cid = __cid;
 
 		//attributes
-		if (!article.__attributes) article.__attributes = {};
+		if (!object.__attributes) object.__attributes = {};
 		if (!_snapshot.__attributes) _snapshot.__attributes = {};
 
 		//atomic properties
@@ -3323,14 +3316,14 @@ Depends on  NOTHING
 
 		//tags
 		var _removeTags = []; 
-		if (!article.__tags) article.__tags = [];
+		if (!object.__tags) object.__tags = [];
 		if (!_snapshot.__tags) _snapshot.__tags = [];
 
 		//fields to be returned
 		var _fields = '';
 
 		//Fileds to be ignored while update operation
-		var _ignoreTheseFields = ["__id", "__revision", "__endpointa", "__endpointb", "__createdby", "__lastmodifiedby", "__schematype", "__relationtype", "__schemaid", "__relationid", "__utcdatecreated", "__utclastupdateddate", "__tags", "__authType", "__link"];
+		var _ignoreTheseFields = ["__id", "__revision", "__endpointa", "__endpointb", "__createdby", "__lastmodifiedby", "__type", "__relationtype", "__typeid", "__relationid", "__utcdatecreated", "__utclastupdateddate", "__tags", "__authType", "__link"];
 		
 		var _allowObjectSetOperations = ["__link", "__endpointa", "__endpointb"];
 
@@ -3343,7 +3336,7 @@ Depends on  NOTHING
 			return data;
 		};
 
-		this.attributes = this.toJSON = this.getObject = function() { return JSON.parse(JSON.stringify(article)); };
+		this.attributes = this.toJSON = this.getObject = function() { return JSON.parse(JSON.stringify(object)); };
 
 		this.properties = function() {
 			var properties = this.attributes();
@@ -3360,39 +3353,39 @@ Depends on  NOTHING
 			return this.get('__id');	
 		};
 
-		// accessor function for the article's attributes
+		// accessor function for the object's attributes
 		this.attr = function() {
 			if (arguments.length === 0) {
-				if (!article.__attributes) article.__attributes = {};
-				return article.__attributes;
+				if (!object.__attributes) object.__attributes = {};
+				return object.__attributes;
 			} else if (arguments.length === 1) {
-				if (!article.__attributes) article.__attributes = {};
-				return article.__attributes[arguments[0]];
+				if (!object.__attributes) object.__attributes = {};
+				return object.__attributes[arguments[0]];
 			} else if (arguments.length === 2) {
 				if (!_type.isString(arguments[1]) && arguments[1] !== null)
 					throw new Error('only string values can be stored in attributes.');
-				if (!article.__attributes) article.__attributes = {};
-				article.__attributes[arguments[0]] = arguments[1];
+				if (!object.__attributes) object.__attributes = {};
+				object.__attributes[arguments[0]] = arguments[1];
 			} else throw new Error('.attr() called with an incorrect number of arguments. 0, 1, 2 are supported.');
 
-			return article.__attributes;
+			return object.__attributes;
 		};
 
 		//accessor function to get changed attributes
 		var _getChangedAttributes = function() {
-			if (!article.__attributes) return null;
-			if (!_snapshot.__attributes) return article.__attributes;
+			if (!object.__attributes) return null;
+			if (!_snapshot.__attributes) return object.__attributes;
 
 			var isDirty = false;
 			var changeSet = JSON.parse(JSON.stringify(_snapshot.__attributes));
-			for (var property in article.__attributes) {
-				if (article.__attributes[property] == null || article.__attributes[property] == undefined) {
+			for (var property in object.__attributes) {
+				if (object.__attributes[property] == null || object.__attributes[property] == undefined) {
 					changeSet[property] = null;
 					isDirty = true;
-				} else if (article.__attributes[property] != _snapshot.__attributes[property]) {
-					changeSet[property] = article.__attributes[property];
+				} else if (object.__attributes[property] != _snapshot.__attributes[property]) {
+					changeSet[property] = object.__attributes[property];
 					isDirty = true;
-				} else if (article.__attributes[property] == _snapshot.__attributes[property]) {
+				} else if (object.__attributes[property] == _snapshot.__attributes[property]) {
 					delete changeSet[property];
 				}
 			}
@@ -3402,13 +3395,13 @@ Depends on  NOTHING
 
 		this.getChangedAttributes = _getChangedAttributes;
 
-		// accessor function for the article's aggregates
+		// accessor function for the object's aggregates
 		this.aggregate = function() {
 			var aggregates = {};
-			for (var key in article) {
-				if (!article.hasOwnProperty(key)) return;
+			for (var key in object) {
+				if (!object.hasOwnProperty(key)) return;
 				if (key[0] == '$') {
-					aggregates[key.substring(1)] = article[key];
+					aggregates[key.substring(1)] = object[key];
 				}
 			}
 			if (arguments.length === 0) return aggregates;
@@ -3417,17 +3410,17 @@ Depends on  NOTHING
 		};
 
 		this.tags = function()  {
-			if (!article.__tags) return [];
-			return article.__tags;
+			if (!object.__tags) return [];
+			return object.__tags;
 		};
 
 		this.addTag = function(tag) {
 			if (!tag || !_type.isString(tag) || !tag.length) return this;
 		    
-		    if (!article.__tags) article.__tags = [];
+		    if (!object.__tags) object.__tags = [];
 
-		    article.__tags.push(tag);
-		    article.__tags = Array.distinct(article.__tags);
+		    object.__tags.push(tag);
+		    object.__tags = Array.distinct(object.__tags);
 
 		    if (!_removeTags || !_removeTags.length) return this;
 			var index = _removeTags.indexOf(tag);
@@ -3441,18 +3434,18 @@ Depends on  NOTHING
 			_removeTags.push(tag);
 			_removeTags = Array.distinct(_removeTags);
 
-			if (!article.__tags || !article.__tags.length) return this;
-			var index = article.__tags.indexOf(tag);
-			if (index != -1) article.__tags.splice(index, 1);
+			if (!object.__tags || !object.__tags.length) return this;
+			var index = object.__tags.indexOf(tag);
+			if (index != -1) object.__tags.splice(index, 1);
 			return this;
 		};
 
 		var _getChangedTags = function() {
-			if (!article.__tags) return [];
-			if (!_snapshot.__tags) return article.__tags;
+			if (!object.__tags) return [];
+			if (!_snapshot.__tags) return object.__tags;
 
 			var _tags = [];
-			article.__tags.forEach(function(a) {
+			object.__tags.forEach(function(a) {
 				if (_snapshot.__tags.indexOf(a) == -1)
 					_tags.push(a);
 			});
@@ -3466,18 +3459,18 @@ Depends on  NOTHING
 		var _getChanged = function(isInternal) {
 			var isDirty = false;
 			var changeSet = JSON.parse(JSON.stringify(_snapshot));
-			for (var property in article) {
-				if (article[property] == null || article[property] == undefined) {
+			for (var property in object) {
+				if (object[property] == null || object[property] == undefined) {
 					changeSet[property] = null;
 					isDirty = true;
-				} else if (article[property] != _snapshot[property]) {
+				} else if (object[property] != _snapshot[property]) {
 					if (property == '__tags' || property == '__attributes') {
 						delete changeSet[property];
 					} else {
-						changeSet[property] = article[property];
+						changeSet[property] = object[property];
 						isDirty = true;
 					}
-				} else if (article[property] == _snapshot[property]) {
+				} else if (object[property] == _snapshot[property]) {
 					delete changeSet[property];
 				}
 			}
@@ -3627,13 +3620,13 @@ Depends on  NOTHING
 			if (key) { 
 				if (type && _types[type.toLowerCase()]) {
 					if (_types[type.toLowerCase()]) {
-						var res = _types[type.toLowerCase()](article[key]);
+						var res = _types[type.toLowerCase()](object[key]);
 						return res;
 					} else {
 						throw new Error('Invalid cast-type "' + type + '"" provided for get "' + key + '"');
 					}
 				}
-				return article[key];
+				return object[key];
 			}
 		};
 
@@ -3647,32 +3640,32 @@ Depends on  NOTHING
 
 			if(!key || !_type.isString(key) ||  key.length === 0 || key.trim().indexOf('$') === 0) return this; 
 		 	
-		 	if (value == undefined || value == null) { article[key] = null;}
-		 	else if (_type.isString(value)) { article[key] = value; }
-		 	else if (_type.isNumber(value) || _type.isBoolean(value)) { article[key] = value + ''; }
-		 	else if (value instanceof Date) article[key] = global.Appacitive.Date.toISOString(value);
+		 	if (value == undefined || value == null) { object[key] = null;}
+		 	else if (_type.isString(value)) { object[key] = value; }
+		 	else if (_type.isNumber(value) || _type.isBoolean(value)) { object[key] = value + ''; }
+		 	else if (value instanceof Date) object[key] = global.Appacitive.Date.toISOString(value);
 		 	else if (_type.isObject(value)) {
 		 		if (_allowObjectSetOperations.indexOf(key) !== -1) {
-		 		 	article[key] = value;
+		 		 	object[key] = value;
 		 		} else {
 		 			if (value instanceof global.Appacitive.GeoCoord) {
-		 				article[key] = value.toString();
+		 				object[key] = value.toString();
 		 			} else {
 		 				throw new Error("Property cannot have value as an object");
 		 			}
 		 		}
 			} else if(_type.isArray(value)) {
-				article[key] = [];
+				object[key] = [];
 
 				value.forEach(function(v) {
-					if (_type.isString(v)) { article[key].push(v); }
-		 			else if (_type.isNumber(v) || _type.isBoolean(v)) { article[key].push(v + ''); }
-		 			else if (v instanceof Date) article[key].push(global.Appacitive.Date.toISOString(v));
+					if (_type.isString(v)) { object[key].push(v); }
+		 			else if (_type.isNumber(v) || _type.isBoolean(v)) { object[key].push(v + ''); }
+		 			else if (v instanceof Date) object[key].push(global.Appacitive.Date.toISOString(v));
 	 				else throw new Error("Multivalued property cannot have values of property as an object");
 				});
 
 				if (key !== 'tags' || key !== '__link') {
-					article[key].push = function(v) {
+					object[key].push = function(v) {
 					  	var len = this.length;
 					  	if (_type.isString(v)) { this[len] = v; }
 			 			else if (_type.isNumber(v) || _type.isBoolean(v)) { this[len] = v + ''; }
@@ -3688,29 +3681,29 @@ Depends on  NOTHING
 
 		this.unset = function(key) {
 			if (!key || !_type.isString(key) ||  key.length === 0 || key.indexOf('__') === 0) return this; 
-		 	try { delete article[key]; } catch(e) {}
+		 	try { delete object[key]; } catch(e) {}
 			return this;
 		};
 
 		this.has = function(key) {
 			if (!key || !_type.isString(key) ||  key.length === 0) return false; 
-			if (article[key] && !_type.isUndefined(article[key])) return true;
+			if (object[key] && !_type.isUndefined(object[key])) return true;
 			return false;
 		};
 
 		this.isNew = function() {
-			if (article.__id && article.__id.length) return false;
+			if (object.__id && object.__id.length) return false;
 			return true;
 		};
 
 		this.clone = function() {
-			if (this.type == 'article') return new global.Appacitive.Article(this.toJSON());
-			return new global.Appacitive.connection(article);
+			if (this.type == 'object') return new global.Appacitive.Object(this.toJSON());
+			return new global.Appacitive.connection(object);
 		};
 
 		this.copy = function(properties, setSnapShot) { 
 			if (properties) { 
-				_copy(properties, article);
+				_copy(properties, object);
 				if (setSnapShot) {
 					_copy(properties, _snapshot);
 				}
@@ -3719,20 +3712,20 @@ Depends on  NOTHING
 		};
 
 		this.mergeWithPrevious = function() {
-			_copy(article, _snapshot);
+			_copy(object, _snapshot);
 			_removeTags = [];
 			_atomicProps.length = 0;
 			return this;
 		};
 
 		var _merge = function() {
-			_copy(_snapshot, article);
+			_copy(_snapshot, object);
 			_removeTags = [];
 			_atomicProps.length = 0;
 		};
 
 		this.rollback = function() {
-			article = raw = {};
+			object = raw = {};
 			_merge();
 			return this;
 		};
@@ -3761,51 +3754,51 @@ Depends on  NOTHING
 		   if the object has an id, then it has been created -> update
 		   else create */
 		this.save = function() {
-			if (article.__id) return _update.apply(this, arguments);
+			if (object.__id) return _update.apply(this, arguments);
 			else return _create.apply(this, arguments);
 		};
 
-		// to create the article
+		// to create the object
 		var _create = function(callbacks) {
 
 			var type = that.type;
-			if (article.__schematype &&  ( article.__schematype.toLowerCase() == 'user' ||  article.__schematype.toLowerCase() == 'device')) {
-				type = article.__schematype.toLowerCase()
+			if (object.__type &&  ( object.__type.toLowerCase() == 'user' ||  object.__type.toLowerCase() == 'device')) {
+				type = object.__type.toLowerCase()
 			}
 
 			//remove __revision and aggregate poprerties
-			for (var p in article) {
-				if (p[0] == '$') delete article[p];
+			for (var p in object) {
+				if (p[0] == '$') delete object[p];
 			}
-			if (article["__revision"]) delete article["__revision"];
+			if (object["__revision"]) delete object["__revision"];
 			
 			var request = new global.Appacitive._Request({
 				method: 'PUT',
 				type: type,
 				op: 'getCreateUrl',
-				args: [article.__schematype || article.__relationtype, _fields],
-				data: article,
+				args: [object.__type || object.__relationtype, _fields],
+				data: object,
 				callbacks: callbacks,
 				entity: that,
 				onSuccess: function(data) {
 					var savedState = null;
-					if (data && (data.article || data.connection || data.user || data.device)) {
-						savedState = data.article || data.connection || data.user || data.device;
+					if (data && (data.object || data.connection || data.user || data.device)) {
+						savedState = data.object || data.connection || data.user || data.device;
 					}
 					if (data && savedState) {
 						_snapshot = savedState;
-						article.__id = savedState.__id;
+						object.__id = savedState.__id;
 						
 						_merge();
 
 						if (that.type == 'connection') that.parseConnection();
-						global.Appacitive.eventManager.fire((that.schema || that.relation) + '.' + that.type + '.created', that, { object : that });
+						global.Appacitive.eventManager.fire(that.entityType + '.' + that.type + '.created', that, { object : that });
 
 						that.created = true;
 
 						request.promise.fulfill(that);
 					} else {
-						global.Appacitive.eventManager.fire((that.schema || that.relation) + '.' + that.type + '.createFailed', that, { error: data.status });
+						global.Appacitive.eventManager.fire(that.entityType + '.' + that.type + '.createFailed', that, { error: data.status });
 						request.promise.reject(data.status, that);
 					}
 				}
@@ -3814,7 +3807,7 @@ Depends on  NOTHING
 			return request.send();
 		};
 
-		// to update the article
+		// to update the object
 		var _update = function(callbacks, promise) {
 
 			if (!global.Appacitive.Promise.is(promise)) promise = global.Appacitive.Promise.buildPromise(callbacks);
@@ -3830,14 +3823,14 @@ Depends on  NOTHING
 					var fields = _fields;
 
 					var _updateRequest = new global.Appacitive.HttpRequest();
-					var url = global.Appacitive.config.apiBaseUrl + global.Appacitive.storage.urlFactory[that.type].getUpdateUrl(article.__schematype || article.__relationtype, (_snapshot.__id) ? _snapshot.__id : article.__id, fields, revision);
+					var url = global.Appacitive.config.apiBaseUrl + global.Appacitive.storage.urlFactory[that.type].getUpdateUrl(object.__type || object.__relationtype, (_snapshot.__id) ? _snapshot.__id : object.__id, fields, revision);
 					
 					var type = that.type;
 
-					// for User and Device articles
-					if (article && article.__schematype &&  ( article.__schematype.toLowerCase() == 'user' ||  article.__schematype.toLowerCase() == 'device')) { 
-						type = article.__schematype.toLowerCase();
-						url = global.Appacitive.config.apiBaseUrl + global.Appacitive.storage.urlFactory[article.__schematype.toLowerCase()].getUpdateUrl(_snapshot.__id, fields, revision);
+					// for User and Device objects
+					if (object && object.__type &&  ( object.__type.toLowerCase() == 'user' ||  object.__type.toLowerCase() == 'device')) { 
+						type = object.__type.toLowerCase();
+						url = global.Appacitive.config.apiBaseUrl + global.Appacitive.storage.urlFactory[object.__type.toLowerCase()].getUpdateUrl(_snapshot.__id, fields, revision);
 					}
 					_updateRequest.url = url;
 					_updateRequest.method = 'post';
@@ -3850,13 +3843,13 @@ Depends on  NOTHING
 							
 							delete that.created;
 							
-							global.Appacitive.eventManager.fire((that.schema || that.relation)  + '.' + type + "." + article.__id +  '.updated', that, { object : that });
+							global.Appacitive.eventManager.fire(that.entityType  + '.' + type + "." + object.__id +  '.updated', that, { object : that });
 							promise.fulfill(that);
 						} else {
 							if (data.status.code == '14008' && _atomicProps.length > 0) {
 								_update(callbacks, promise);
 							}  else {
-								global.Appacitive.eventManager.fire((that.schema || that.relation)  + '.' + type + "." + article.__id +  '.updateFailed', that, { object : data.status });
+								global.Appacitive.eventManager.fire(that.entityType  + '.' + type + "." + object.__id +  '.updateFailed', that, { object : data.status });
 								promise.reject(data.status, that);
 							}
 						}
@@ -3881,8 +3874,13 @@ Depends on  NOTHING
 					props.push(p.key); 
 				});
 
-				global.Appacitive.Article
-					.get({ schema: this.get('__schematype'), id: this.id(), fields: props })
+				var args = { id: this.id(), fields: props };
+				
+				if (this.type == 'object') args.type = this.get('__type');
+				else args.relation = this.get('__type');
+
+				global.Appacitive[this.type == 'object' ? 'Article' : 'Connection']
+					.get(args)
 					.then(function(obj) {
 
 						obj = obj.toJSON();
@@ -3903,29 +3901,29 @@ Depends on  NOTHING
 
 		var _fetch = function (callbacks) {
 
-			if (!article.__id) throw new Error('Please specify id for get operation');
+			if (!object.__id) throw new Error('Please specify id for get operation');
 			
 			var type = this.type;
 
-			// for User and Device articles
-			if (article && article.__schematype &&  ( article.__schematype.toLowerCase() == 'user' ||  article.__schematype.toLowerCase() == 'device')) { 
-				type = article.__schematype.toLowerCase();
+			// for User and Device objects
+			if (object && object.__type &&  ( object.__type.toLowerCase() == 'user' ||  object.__type.toLowerCase() == 'device')) { 
+				type = object.__type.toLowerCase();
 			}
 
 			var request = new global.Appacitive._Request({
 				method: 'GET',
 				type: type,
 				op: 'getGetUrl',
-				args: [article.__schematype || article.__relationtype, article.__id, _fields],
+				args: [object.__type || object.__relationtype, object.__id, _fields],
 				callbacks: callbacks,
 				entity: that,
 				onSuccess: function(data) {
 					if (data && data[type]) {
 						_snapshot = data[type];
-						_copy(_snapshot, article);
+						_copy(_snapshot, object);
 						if (data.connection) {
 							if (!that.endpoints && (!that.endpointA || !that.endpointB)) {
-								that.setupConnection(article.__endpointa, article.__endpointb);
+								that.setupConnection(object.__endpointa, object.__endpointb);
 							}
 						}
 						request.promise.fulfill(that);
@@ -3945,7 +3943,7 @@ Depends on  NOTHING
 			return _fetch.apply(this ,[callbacks]);
 		};
 
-		// delete the article
+		// delete the object
 		this.destroy = function(callbacks, deleteConnections) {
           
 			if (_type.isBoolean(callbacks)) {
@@ -3955,22 +3953,22 @@ Depends on  NOTHING
 				deleteConnections = false;
 			}
 
-			// if the article does not have __id set, 
+			// if the object does not have __id set, 
 	        // just call success
-	        // else delete the article
+	        // else delete the object
 
-	        if (!article['__id']) return new global.Appacitive.Promise.buildPromise(callbacks).fulfill();
+	        if (!object['__id']) return new global.Appacitive.Promise.buildPromise(callbacks).fulfill();
 
 	        var type = this.type;
-			if (article.__schematype &&  ( article.__schematype.toLowerCase() == 'user' ||  article.__schematype.toLowerCase() == 'device')) {
-				type = article.__schematype.toLowerCase()
+			if (object.__type &&  ( object.__type.toLowerCase() == 'user' ||  object.__type.toLowerCase() == 'device')) {
+				type = object.__type.toLowerCase()
 			}
 
 			var request = new global.Appacitive._Request({
 				method: 'DELETE',
 				type: type,
 				op: 'getDeleteUrl',
-				args: [article.__schematype || article.__relationtype, article.__id, deleteConnections],
+				args: [object.__type || object.__relationtype, object.__id, deleteConnections],
 				callbacks: callbacks,
 				entity: this,
 				onSuccess: function(data) {
@@ -4065,31 +4063,26 @@ Depends on  NOTHING
 
 	"use strict";
 
-	global.Appacitive.Article = function(options, setSnapShot) {
+	global.Appacitive.Object = function(options, setSnapShot) {
 		options = options || {};
 
 		if (_type.isString(options)) {
 			var sName = options;
-			options = { __schematype : sName };
+			options = { __type : sName };
 		}
 
-		if (!options.__schematype && !options.schema ) throw new Error("Cannot set article without __schematype");
-
-		if (options.schema) {
-			options.__schematype = options.schema;
-			delete options.schema;
-		}
+		if (!options.__type) throw new Error("Cannot set object without __type");
 		
 		global.Appacitive.BaseObject.call(this, options, setSnapShot);
 
-		this.type = 'article';
-		this.getArticle = this.getObject;
+		this.type = 'object';
+		this.getObject = this.getObject;
 		this.children = {};
 
 		this.toJSON = function(recursive) {
 			if (recursive) {
 				var parseChildren = function(root) {
-					var articles = [];
+					var objects = [];
 					root.forEach(function(obj) {
 						var tmp = obj.getObject();
 						if (obj.children && !Object.isEmpty(obj.children)) {
@@ -4099,9 +4092,9 @@ Depends on  NOTHING
 							}
 						}
 						if (obj.connection) tmp.__connection = obj.connection.toJSON();
-						articles.push(tmp);
+						objects.push(tmp);
 					});
-					return articles;
+					return objects;
 				};
 				return parseChildren([this])[0];
 			} else {
@@ -4111,33 +4104,33 @@ Depends on  NOTHING
 		return this;
 	};
 
-	global.Appacitive.Article.prototype = new global.Appacitive.BaseObject();
+	global.Appacitive.Object.prototype = new global.Appacitive.BaseObject();
 
-	global.Appacitive.Article.prototype.constructor = global.Appacitive.Article;
+	global.Appacitive.Object.prototype.constructor = global.Appacitive.Object;
 
-	//private function for parsing articles
-	var _parseArticles = function(articles) {
-		var articleObjects = [];
-		articles.forEach(function(a) {
-			articleObjects.push(new global.Appacitive.Article(a, true));
+	//private function for parsing objects
+	var _parseObjects = function(objects) {
+		var tmpObjects = [];
+		objects.forEach(function(a) {
+			tmpObjects.push(new global.Appacitive.Object(a, true));
 		});
-		return articleObjects;
+		return tmpObjects;
 	};
 
-	global.Appacitive._parseArticles = _parseArticles;
+	global.Appacitive._parseObjects = _parseObjects;
 
-	global.Appacitive.Article.multiDelete = function(options, callbacks) {
+	global.Appacitive.Object.multiDelete = function(options, callbacks) {
 		options = options || {};
-		if (!options.schema || !_type.isString(options.schema) || options.schema.length === 0) throw new Error("Specify valid schema");
-		if (options.schema.toLowerCase() === 'user' || options.schema.toLowerCase() === 'device') throw new Error("Cannot delete user and devices using multidelete");
+		if (!options.type || !_type.isString(options.type) || options.type.length === 0) throw new Error("Specify valid type");
+		if (options.type.toLowerCase() === 'user' || options.type.toLowerCase() === 'device') throw new Error("Cannot delete user and devices using multidelete");
 		if (!options.ids || options.ids.length === 0) throw new Error("Specify ids to delete");
 
 		var request = new global.Appacitive._Request({
 			method: 'POST',
 			data: { idlist : options.ids },
-			type: 'article',
+			type: 'object',
 			op: 'getMultiDeleteUrl',
-			args: [options.schema],
+			args: [options.type],
 			callbacks: callbacks,
 			onSuccess: function(d) {
 				request.promise.fulfill();
@@ -4148,35 +4141,35 @@ Depends on  NOTHING
 	};
 
 
-	//takes relationaname and array of articleids and returns an array of Appacitive article objects
-	global.Appacitive.Article.multiGet = function(options, callbacks) {
+	//takes relationaname and array of objectids and returns an array of Appacitive object objects
+	global.Appacitive.Object.multiGet = function(options, callbacks) {
 		options = options || {};
-		if (!options.schema || !_type.isString(options.schema) || options.schema.length === 0) throw new Error("Specify valid schema");
+		if (!options.type || !_type.isString(options.type) || options.type.length === 0) throw new Error("Specify valid type");
 		if (!options.ids || options.ids.length === 0) throw new Error("Specify ids to delete");
 
 		var request = new global.Appacitive._Request({
 			method: 'GET',
-			type: 'article',
+			type: 'object',
 			op: 'getMultiGetUrl',
-			args: [options.schema, options.ids.join(','), options.fields],
+			args: [options.type, options.ids.join(','), options.fields],
 			callbacks: callbacks,
 			onSuccess: function(d) {
-				request.promise.fulfill(_parseArticles(d.articles));
+				request.promise.fulfill(_parseObjects(d.objects));
 			}
 		});
 			
 		return request.send();
 	};
 
-	//takes article id , type and fields and returns that article
-	global.Appacitive.Article.get = function(options, callbacks) {
+	//takes object id , type and fields and returns that object
+	global.Appacitive.Object.get = function(options, callbacks) {
 		options = options || {};
-		if (!options.schema) throw new Error("Specify schema");
+		if (!options.type) throw new Error("Specify type");
 		if (!options.id) throw new Error("Specify id to fetch");
 
 		var obj = {};
-		if (options.schema.toLowerCase() === 'user') obj = new global.Appacitive.User({ __id: options.id });
-		else obj = new global.Appacitive.Article({ __schematype: options.schema, __id: options.id });
+		if (options.type.toLowerCase() === 'user') obj = new global.Appacitive.User({ __id: options.id });
+		else obj = new global.Appacitive.Object({ __type: options.type, __id: options.id });
 		
 		obj.fields = options.fields;
 
@@ -4184,26 +4177,26 @@ Depends on  NOTHING
 	};
 
     //takes relation type and returns query for it
-	global.Appacitive.Article.prototype.getConnections = function(options) {
-		if (this.isNew()) throw new Error("Cannot fetch connections for new article");
-		options.articleId = this.get('__id');
+	global.Appacitive.Object.prototype.getConnections = function(options) {
+		if (this.isNew()) throw new Error("Cannot fetch connections for new object");
+		options.objectId = this.get('__id');
 		return new global.Appacitive.Queries.GetConnectionsQuery(options);
 	};
 
 	//takes relation type and returns a query for it
-	global.Appacitive.Article.prototype.getConnectedArticles = function(options) {
-		if (this.isNew()) throw new Error("Cannot fetch connections for new article");
+	global.Appacitive.Object.prototype.getConnectedObjects = function(options) {
+		if (this.isNew()) throw new Error("Cannot fetch connections for new object");
 		options = options || {};
 		if (_type.isString(options)) options = { relation: options };
-		options.schema = this.entityType;
-		options.articleId = this.get('__id');
-		options.article = this;
-		return new global.Appacitive.Queries.ConnectedArticlesQuery(options);
+		options.type = this.get('__type');
+		options.objectId = this.get('__id');
+		options.object = this;
+		return new global.Appacitive.Queries.ConnectedObjectsQuery(options);
 	};
-	global.Appacitive.Article.prototype.fetchConnectedArticles = global.Appacitive.Article.prototype.getConnectedArticles;
+	global.Appacitive.Object.prototype.fetchConnectedObjects = global.Appacitive.Object.prototype.getConnectedObjects;
 	
-	// takes schea type and return a query for it
-	global.Appacitive.Article.findAll = function(options) {
+	// takes type and return a query for it
+	global.Appacitive.Object.findAll = function(options) {
 		return new global.Appacitive.Queries.FindAllQuery(options);
 	};
 
@@ -4214,25 +4207,25 @@ Depends on  NOTHING
 
 	var _parseEndpoint = function(endpoint, type, base) {
 		var result = { label: endpoint.label };
-		if (endpoint.articleid)  result.articleid = endpoint.articleid;
-		if (endpoint.article) {
-			if (_type.isFunction(endpoint.article.getArticle)) {
-				// provided an instance of Appacitive.ArticleCollection
-				// stick the whole article if there is no __id
+		if (endpoint.objectid)  result.objectid = endpoint.objectid;
+		if (endpoint.object) {
+			if (_type.isFunction(endpoint.object.getObject)) {
+				// provided an instance of Appacitive.ObjectCollection
+				// stick the whole object if there is no __id
 				// else just stick the __id
-				if (endpoint.article.get('__id')) result.articleid = endpoint.article.get('__id');
-				else result.article = endpoint.article.getArticle();
-			} else if (_type.isObject(endpoint.article)) {
-				// provided a raw article
+				if (endpoint.object.get('__id')) result.objectid = endpoint.object.get('__id');
+				else result.object = endpoint.object.getObject();
+			} else if (_type.isObject(endpoint.object)) {
+				// provided a raw object
 				// if there is an __id, just add that
-				// else add the entire article
-				if (endpoint.article.__id) result.articleid = endpoint.article.__id;
-				else result.article = endpoint.article;
+				// else add the entire object
+				if (endpoint.object.__id) result.objectid = endpoint.object.__id;
+				else result.object = endpoint.object;
 
-				endpoint.article =  new global.Appacitive.Article(endpoint.article);
+				endpoint.object =  new global.Appacitive.Object(endpoint.object);
 			} 
 		} else {
-			if (!result.articleid && !result.article) throw new Error('Incorrectly configured endpoints provided to setupConnection');
+			if (!result.objectid && !result.object) throw new Error('Incorrectly configured endpoints provided to setupConnection');
 		}
 
 		base["endpoint" + type] = endpoint;
@@ -4240,17 +4233,17 @@ Depends on  NOTHING
 	};
 
 	var _convertEndpoint = function(endpoint, type, base) {
-		if ( endpoint.article && _type.isObject(endpoint.article)) {
+		if ( endpoint.object && _type.isObject(endpoint.object)) {
 			if (!base['endpoint' + type]) {
 				base["endpoint" + type] = {};
-				base['endpoint' + type].article = new global.Appacitive.Article(endpoint.article, true);
+				base['endpoint' + type].object = new global.Appacitive.Object(endpoint.object, true);
 			} else {
-				if (base['endpoint' + type] && base['endpoint' + type].article && base['endpoint' + type].article instanceof global.Appacitive.Article)
-					base["endpoint" + type].article.copy(endpoint.article, true);
+				if (base['endpoint' + type] && base['endpoint' + type].object && base['endpoint' + type].object instanceof global.Appacitive.Object)
+					base["endpoint" + type].object.copy(endpoint.object, true);
 				else 
-					base['endpoint' + type].article = new global.Appacitive.Article(endpoint.article, true);
+					base['endpoint' + type].object = new global.Appacitive.Object(endpoint.object, true);
 			}
-			base["endpoint" + type].articleid = endpoint.article.__id;
+			base["endpoint" + type].objectid = endpoint.object.__id;
 			base["endpoint" + type].label = endpoint.label;
 			base["endpoint" + type].type = endpoint.type;
 		} else {
@@ -4287,7 +4280,7 @@ Depends on  NOTHING
 			
 			var typeA = 'A', typeB ='B';
 			if ( options.__endpointa.label.toLowerCase() === this.get('__endpointb').label.toLowerCase() ) {
-				if ((options.__endpointa.label.toLowerCase() != options.__endpointb.label.toLowerCase()) && (options.__endpointa.articleid == this.get('__endpointb').articleid || !options.__endpointa.articleid)) {
+				if ((options.__endpointa.label.toLowerCase() != options.__endpointb.label.toLowerCase()) && (options.__endpointa.objectid == this.get('__endpointb').objectid || !options.__endpointa.objectid)) {
 				 	typeA = 'B';
 				 	typeB = 'A';
 				}
@@ -4327,14 +4320,14 @@ Depends on  NOTHING
 	global.Appacitive.Connection.prototype.setupConnection = function(endpointA, endpointB) {
 		
 		// validate the endpoints
-		if (!endpointA || (!endpointA.articleid &&  !endpointA.article) || !endpointA.label || !endpointB || (!endpointB.articleid && !endpointB.article) || !endpointB.label) {
+		if (!endpointA || (!endpointA.objectid &&  !endpointA.object) || !endpointA.label || !endpointB || (!endpointB.objectid && !endpointB.object) || !endpointB.label) {
 			throw new Error('Incorrect endpoints configuration passed.');
 		}
 
 		// there are two ways to do this
-		// either we are provided the article id
-		// or a raw article
-		// or an Appacitive.Article instance
+		// either we are provided the object id
+		// or a raw object
+		// or an Appacitive.Object instance
 		// sigh
 		
 		// 1
@@ -4381,7 +4374,7 @@ Depends on  NOTHING
 
 	global.Appacitive.Connection._parseConnections = _parseConnections;
 
-	//takes relationname and array of connectionids and returns an array of Appacitive article objects
+	//takes relationname and array of connectionids and returns an array of Appacitive object objects
 	global.Appacitive.Connection.multiGet = function(options, callbacks) {
 		options = options || {};
 		if (!options.relation || !_type.isString(options.relation) || options.relation.length === 0) throw new Error("Specify valid relation");
@@ -4428,19 +4421,19 @@ Depends on  NOTHING
 		return new global.Appacitive.Queries.FindAllQuery(options);
 	};
 
-	//takes 1 articleid and multiple aricleids and returns connections between both 
+	//takes 1 objectid and multiple aricleids and returns connections between both 
 	global.Appacitive.Connection.getInterconnects = function(options) {
 		return new global.Appacitive.Queries.InterconnectsQuery(options);
 	};
 
-	//takes 2 articleids and returns connections between them
-	global.Appacitive.Connection.getBetweenArticles = function(options) {
-		return new global.Appacitive.Queries.GetConnectionsBetweenArticlesQuery(options);
+	//takes 2 objectids and returns connections between them
+	global.Appacitive.Connection.getBetweenObjects = function(options) {
+		return new global.Appacitive.Queries.GetConnectionsBetweenObjectsQuery(options);
 	};
 
-	//takes 2 articles and returns connections between them of particluar relationtype
-	global.Appacitive.Connection.getBetweenArticlesForRelation = function(options) {
-		return new global.Appacitive.Queries.GetConnectionsBetweenArticlesForRelationQuery(options);
+	//takes 2 objects and returns connections between them of particluar relationtype
+	global.Appacitive.Connection.getBetweenObjectsForRelation = function(options) {
+		return new global.Appacitive.Queries.GetConnectionsBetweenObjectsForRelationQuery(options);
 	};
 
 })(global);
@@ -4534,8 +4527,8 @@ Depends on  NOTHING
 
 			_authenticatedUser.logout = function(callback) { return global.Appacitive.Users.logout(callback); };
 
-			global.Appacitive.eventManager.clearAndSubscribe('user.article.' + userObject.get('__id') + '.updated', function(sender, args) {
-				global.Appacitive.localStorage.set('Appacitive-User', args.object.getArticle());
+			global.Appacitive.eventManager.clearAndSubscribe('type.user.' + userObject.get('__id') + '.updated', function(sender, args) {
+				global.Appacitive.localStorage.set('Appacitive-User', args.object.getObject());
 			});
 
 			return _authenticatedUser;
@@ -4543,12 +4536,12 @@ Depends on  NOTHING
 		
 		global.Appacitive.User = function(options) {
 			options = options || {};
-			options.__schematype = 'user';
-			global.Appacitive.Article.call(this, options);
+			options.__type = 'user';
+			global.Appacitive.Object.call(this, options);
 			return this;
 		};
 
-		global.Appacitive.User.prototype = new global.Appacitive.Article('user');
+		global.Appacitive.User.prototype = new global.Appacitive.Object('user');
 
 		global.Appacitive.User.prototype.constructor = global.Appacitive.User;
 
@@ -4701,7 +4694,7 @@ Depends on  NOTHING
 
 		this.deleteUser = function(userId, callbacks) {
 			if (!userId) throw new Error('Specify userid for user delete');
-			return new global.Appacitive.Article({ __schematype: 'user', __id: userId }).del(true, callbacks);
+			return new global.Appacitive.Object({ __type: 'user', __id: userId }).del(true, callbacks);
 		};
 
 		this.deleteCurrentUser = function(callbacks) {
@@ -4732,7 +4725,7 @@ Depends on  NOTHING
 
 		this.createNewUser = function(user, callbacks) {
 			user = user || {};
-			user.__schematype = 'user';
+			user.__type = 'user';
 			if (!user.username || !user.password || !user.firstname || user.username.length === 0 || user.password.length === 0 || user.firstname.length === 0) 
 				throw new Error('username, password and firstname are mandatory');
 
@@ -5362,9 +5355,11 @@ Depends on  NOTHING
 
       var _create = function(callbacks) {
           if (!that.fileData) throw new Error('Please specify filedata');
+          if(!that.contentType) {
+            try { that.contentType = that.fileData.type; } catch(e) {}
+          }
           if (!that.contentType || !_type.isString(that.contentType) || that.contentType.length === 0) that.contentType = 'text/plain';
-          try { that.contentType = file.type; } catch(e) {}
-
+          
           var promise = global.Appacitive.Promise.buildPromise(callbacks);
 
           var url = global.Appacitive.config.apiBaseUrl + global.Appacitive.storage.urlFactory.file.getUploadUrl(that.contentType, that.fileId ? that.fileId : '');
@@ -5387,8 +5382,10 @@ Depends on  NOTHING
 
       var _update = function(callbacks) {
           if (!that.fileData) throw new Error('Please specify filedata');
+          if(!that.contentType) {
+            try { that.contentType = that.fileData.type; } catch(e) {}
+          }
           if (!that.contentType || !_type.isString(that.contentType) || that.contentType.length === 0) that.contentType = 'text/plain';
-          try { that.contentType = file.type; } catch(e) {}
           
           var promise = global.Appacitive.Promise.buildPromise(callbacks);
 

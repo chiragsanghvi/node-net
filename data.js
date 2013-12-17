@@ -1,7 +1,8 @@
 // Include Appacitive SDK 
 var Appacitive = require('./AppacitiveSDK.js'),
 	epoch = require('./time.js'),
-	sys = require('sys');
+	sys = require('sys'),
+  triangClient = require('./triangClient.js');
 
 // Initialize it with apikey, appId and env
 Appacitive.initialize({
@@ -11,18 +12,36 @@ Appacitive.initialize({
 });
 
 // Change base URL for Appacitive
-Appacitive.config.apiBaseUrl = "http://apis.appacitive.com/";
+Appacitive.config.apiBaseUrl = "http://apis.appacitive.com/v1.0/";
 
 console.log("AppacitiveSDK loaded");
 
-// Parses string geocode value and return Appacitive geocode object or false
-var getGeocode = function(geoCode) {
+/* Parses string geocode value and return Appacitive geocode object or false
+   This'll basically check for geocode value not being zero
+   or calculate it using triangulation depending on 'd' attribute
+ */  
+var getGeocode = function(message) {
+  var promise = new Appacitive.Promise();
+
   // validate the geocode
   try {
-    return new Appacitive.GeoCoord(geoCode);
+    /* If dimension is 1 then we calculate geocode on basis of triangulation information 
+       else we directly cast it into Appacitive.GeoCoords object
+       If lat and lng is zero then we reject the promise
+       else we fulfill it
+     */
+    if (message.d == 1 && message.tr) {
+      // Call triangClient to calculate geocode
+      return triangClient.getGeocode(message.tr, message.ssq ? message.ssq : 50);
+    } else {
+        var geoCode =  new Appacitive.GeoCoord(message.gc);
+        if (geoCode.lat == 0 && geoCode.lng == 0) promise.reject();
+        else promise.fulfill(geoCode);
+    }
   } catch(e) {
-    return false;
+    promise.reject();
   }
+  return promise;
 }; 
 
 // Sends a push Notifcation
@@ -48,29 +67,38 @@ var sendPushNotification = function(data) {
   } catch(e) {}
 };
 
+/* Finds an window of time depending on appEpoch time
+   If window exists for particular deviceid then use it
+   or create a new and return it 
+ */
 var findDataForWindow = function(apData, window, deviceId) {
 	var promise = new Appacitive.Promise();
 	
-	// If data article is set in socket, and its difference between created and updated date is lessthan 1 hour then use it directly
-    if (apData) {
-      if (apData.get('window') == window) {
-        promise.resolve(apData);
-        return promise;
-      }
-    } 
+	// If data object is set in socket, and its window is similar to passed in window then use it directly
+  if (apData) {
+    if (apData.get('window') == window) {
+      promise.resolve(apData);
+      return promise;
+    }
+  } 
 	
-    var query = new Appacitive.Queries.FindAllQuery({
+  // Create query to search checkin which has following window and deviceId
+  var query = new Appacitive.Queries.FindAllQuery({
 		pageSize: 1,
-		schema: 'checkins',
+		type: 'checkins',
 		filter: Appacitive.Filter.And(
-			Appacitive.Filter.Property('window').equalToNumber(window),
-			Appacitive.Filter.Property('deviceid').equalTo(deviceId)),
+		Appacitive.Filter.Property('window').equalToNumber(window),
+		Appacitive.Filter.Property('deviceid').equalTo(deviceId)),
 		fields: ['*']
 	});
-
+ 
+  /* Fetch checkin for the window
+     If no checkin is found then we create a new checkin object and return it 
+     else we return found object
+   */
 	query.fetch().then(function(results) {
 		if (results.total == 0) {
-			promise.resolve(new Appacitive.Article('checkins'));
+			promise.resolve(new Appacitive.Object('checkins'));
 		} else {
 			promise.resolve(results[0]);
 		}
@@ -81,30 +109,39 @@ var findDataForWindow = function(apData, window, deviceId) {
 	return promise;
 };
 
+/* Send a Push notification to tracker user and also adds a new panic object
+   Connects the new panic object to tracker via panic_history relation
+ */
+var sendPanicMessage = function(socket, message, geoCode) {
+    // If message type is panic then set it in type
+    if (message.t && message.t == '1') {
+      var panic = new Appacitive.Object('panic').set('geocode', geoCode);
+      var tracker_history = new Appacitive.Connection({
+        relation: 'panic_history',
+        endpoints: [{ 
+          object: panic,
+          label: 'panic'
+        }, {
+          object: socket.tracker,
+          label: 'tracker'
+        }]
+      });
+
+      tracker_history.save();
+
+      sendPushNotification(socket.tracker);
+    } 
+};
+
+// Updates existing tracker information with passed in geocode and battery information
 var updateTrackerPosition = function(socket, message, geoCode) {
-	
-	var sendPanicMessage = function() {
-		// If message type is panic then set it in type
-      if (message.t && message.t == '1') {
-          var panic = new Appacitive.Article('panic').set('geocode', geoCode);
-          var tracker_history = new Appacitive.Connection({
-          	relation: 'panic_history',
-          	endpoints: [{ 
-          		article: panic,
-          		label: 'panic'
-          	}, {
-          		article: socket.tracker,
-          		label: 'tracker'
-          	}]
-          });
 
-          tracker_history.save();
-
-          sendPushNotification(socket.tracker);
-      } 
-	};
-
+  /* Sets exisiting location of the tracker and saves it
+     Looks for panic message, if t = 1, then it will send a panic message
+   */
 	var updateTracker = function() {
+    if (message.b) socket.tracker.set('battery', message.b);
+    
     if (socket.tracker.isNew()) {
 		  socket.tracker.set('geocode', geoCode);
       
@@ -118,21 +155,28 @@ var updateTrackerPosition = function(socket, message, geoCode) {
         socket.tracker.save();
       }
 		}
-    sendPanicMessage();
+    sendPanicMessage(socket, message, geoCode);
 	};
 
+  // If socket already has tracker object then no need to fetch it 
 	if (socket.tracker) {
 		updateTracker();
 		return;
 	}
 
+  // Create query to search tracker which has following deviceId
 	var query = new Appacitive.Queries.FindAllQuery({
 		pageSize: 1,
-		schema: 'tracker',
+		type: 'tracker',
 		filter: Appacitive.Filter.Property('deviceid').equalTo(message.did),
 		fields: []
 	});
 
+
+  /* Fetch tracker for the deviceId
+     If no tracker is found then we create a new tracker object and return it 
+     else we return found tracker object
+   */
 	query.fetch().then(function(results) {
 		if (results.total == 0) {
       sys.puts("Creating tracker");
@@ -149,82 +193,71 @@ var updateTrackerPosition = function(socket, message, geoCode) {
 };
 
 exports.addData = function(message, socket) {
-	// Get Appacitive.GeoCoord object for gc sent in message
-      var geoCode = getGeocode(message.gc);
+	 
+    // Get window and displacement from current window
+    var diffWindow = epoch.getWindowWithDisplacement();
 
-      // If geoCode is valid then create
-      if (geoCode) {
+    // Get Appacitive.GeoCoord object for gc sent in message 
+    getGeocode(message).then(function(geoCode) {
+      
+      // Update tracker position
+      try {
+        updateTrackerPosition(socket, message, geoCode);
+      } catch(e) {
+        sys.puts(e.message);
+      }
 
-      	if (geoCode.lat == 0 && geoCode.lng == 0) {
-          if (message.t && message.t == '1') {
-            updateTrackerPosition(socket, message, geoCode);
-          }
-          if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + socket.apData ? socket.apData.id() : 0);
-          return;
-        } 
-
-      	try {
-  			  updateTrackerPosition(socket, message, geoCode);
-      	} catch(e) {
-      		sys.puts(e.message);
-      	}
-
-    	  // Get window and displacement from current window
-        var diffWindow = epoch.getWindowWithDisplacement();
-
-        findDataForWindow(socket.apData, diffWindow.window, message.did).then(function(apData) {
-        	 
-	        // Get checkins property from apdata
-	        var checkins = apData.tryGet('checkins', '');
-
-	        //Append geocode
-	        checkins += (checkins.length == 0 ? '' : '|') + geoCode.toString() + 'D' + ((message.d) ? message.d : 3) + 'T' + diffWindow.displacement;
-
-	        // Set checkins
-	        apData.set('checkins', checkins);
-
-	        // Set window
-	        apData.set('window', diffWindow.window);
-
-	        // Set deviceid
-	        apData.set('deviceid', message.did);
-
-	        // Set fields
-	        apData.fields(["__utcdatecreated", "__utclastupdateddate"]);
-
-	        // set attributes
-		    /*for(var p in message) {
-		      if (p != 'gc' && p != 'did' && p != 'cid' && p!== 't') {
-		        sys.puts(p);
-		        if (typeof message[p] == 'object') {
-		          apData.attr(p, JSON.stringify(message[p]));
-		        } else {
-		          apData.attr(p, message[p].toString());
-		        }
-		      }
-		    }*/
-
-	        //Set object in socket of its not panic action
-	        socket.apData = apData;
-
-	        // Save the object
-	        return apData.save();
-        }).then(function(apData) {
-          	if (apData.created) sys.puts("New data article created with id : " + apData.id());
-          	else sys.puts("Existing data article updated with id : " + apData.id());
-
-          	// Write 200 message on socket aknowledging success
-          	if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + apData.id());
-        }, function(err) {
-           sys.puts(JSON.stringify(err));
-           if (socket.writable) socket.write("500|" + ((message.cid) ? message.cid : 0));
-        });
-
+      //If message is of type panic then, no need to checkin
+      if (message.t && message.t == 1) {
+        if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + socket.apData ? socket.apData.id() : 0);
         return;
-    } else if (message.t && message.t == '1') {
+      } 
+
+      // Find checkin window for current window
+      findDataForWindow(socket.apData, diffWindow.window, message.did).then(function(apData) {
+         
+        // Get checkins property from apdata
+        var checkins = apData.tryGet('checkins', '');
+
+        //Append geocode
+        checkins += (checkins.length == 0 ? '' : '|') + geoCode.toString() + 'D' + ((message.d) ? message.d : 3) + 'T' + diffWindow.displacement;
+
+        // Set checkins
+        apData.set('checkins', checkins);
+
+        // Set window
+        apData.set('window', diffWindow.window);
+
+        // Set deviceid
+        apData.set('deviceid', message.did);
+
+        // Set fields
+        apData.fields(["__utcdatecreated", "__utclastupdateddate"]);
+
+        //Set object in socket of its not panic action
+        socket.apData = apData;
+
+        // Save the object
+        return apData.save();
+      }).then(function(apData) {
+          if (apData.created) sys.puts("New data object created with id : " + apData.id());
+          else sys.puts("Existing data object updated with id : " + apData.id());
+
+          // Write 200 message on socket aknowledging success
+          if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + apData.id());
+      }, function(err) {
+         sys.puts(JSON.stringify(err));
+         if (socket.writable) socket.write("500|" + ((message.cid) ? message.cid : 0));
+      });
+    }, function() {
+      // If message is of type panic then just send a panic message
+      if (message.t && message.t == '1') {
         updateTrackerPosition(socket, message, new Appacitive.GeoCoord(0, 0));
         if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + socket.apData ? socket.apData.id() : 0);
         return;
-    }
-    if (socket.writable) socket.write("400");	
+      }
+      if (socket.writable) socket.write("400|" + ((message.cid) ? message.cid : 0));  
+    });
+
+    
 };

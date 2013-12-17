@@ -1,15 +1,30 @@
 var http = require('follow-redirects').http;
 var parseString = require('xml2js').parseString;
+var sys = require("sys");
+var Appacitive = require('./AppacitiveSDK.js');
+
+var request = new Appacitive.HttpRequest();
+request.url = "http://www.opencellid.org/cell/get?mcc=404&mnc=86&cellid=4791&lac=50025&fmt=txt";
+request.headers.push({ key: 'content-type', value: 'text/plain'});
+request.send().then(function(response) {
+    console.log('BODY: ' + response);
+    parseString(response ,function(err, obj) {
+      console.log(obj.rsp.cell[0]["$"]);
+    });
+}, function(e) {
+  console.log('problem with request: ' + e.message);
+});
 
 
- var options = {
+
+/*var options = {
     port: 80,
     hostname: 'www.opencellid.org',
     method: 'GET',
     path: '/cell/get?mcc=404&mnc=86&cellid=4791&lac=50025&fmt=txt',
-    headers: {"content-type": "plain/text"}
- };
- var startTime = new Date().getTime();
+    headers: {"content-type": "text/plain"}
+};
+var startTime = new Date().getTime();
 
 var req = http.request(options, function(res) {
   console.log('STATUS: ' + res.statusCode);
@@ -25,8 +40,8 @@ var req = http.request(options, function(res) {
 });
 
 req.on('error', function(e) {
-  console.log('problem with request: ' + e.message);
+  
 });
 
-req.end();
+req.end();*/
 

@@ -26,7 +26,7 @@ var cleanInput = function (data) {
 // Log initial message on server
 var logMessage = function(message) {
   if (message && message.trim().length > 0) {
-    var log = new Appacitive.Article('log');
+    var log = new Appacitive.Object('log');
     log.set('message', message);
 
     var domain = require('domain').create();
@@ -157,8 +157,8 @@ var tcpServer = net.createServer(function (socket) {
     deleteClient(socket);
   });
 
-  // Set idle timeout to 180000 (30 minutes)
-  socket.setTimeout(180000);
+  // Set idle timeout to 1800000 (30 minutes)
+  socket.setTimeout(1800000);
 
   // Timeout handling for scokets
   socket.on("timeout", function() {
