@@ -240,7 +240,7 @@
                 });
 
                 var currentLocQuery = new Appacitive.Queries.FindAllQuery({
-                    pageSize: 1,
+                    pageSize: 5,
                     schema: 'tracker',
                     filter: Appacitive.Filter.Property('deviceid').equalTo(deviceId),
                     fields: ["geocode", "__utclastupdateddate"]
@@ -289,27 +289,45 @@
                         if (checkins.length == 0) return;
 
                         var checkin = checkins[0];
+
                         var hourWindow = checkin.get('window','number');
 
-                        checkins = checkin.get('checkins');
-
-                        var results = checkins.split('|');
-
-                        var len = results.length -1;
-    
                         hourWindow = ((hourWindow * 3600) + appEpochTime);
+
+                        var sortCheckins = [];
+
+                        checkins.forEach(function(c) {
+                            var splits =  c.tryGet('checkins','').split('|');
+                            splits.forEach(function(r, i) {
+                                var split = r.split('D')
+                                if (split.length !== 2) return;
+
+                                var gc = split[0];
+                                
+                                split = split[1].split('T');
+                                var dim = split[0];
+                                
+                                var dis = parseInt(split[1]);
+
+                                sortCheckins.push({ gc: gc, dim: dim, dis: dis });
+                            });
+                        });
+
+                        var results = sortCheckins.sort(function(a,b) {
+                          if (a.dis < b.dis)
+                             return -1;
+                          if (a.dis > b.dis)
+                            return 1;
+                          return 0;
+                        });
 
                         // Calculate unique coordinates
                         results.forEach(function(r, i) {
-                            var split = r.split('D')
-                            if (split.length !== 2) return;
-                            var gc = getGeocode(split[0]);
+                            var gc = getGeocode(r.gc);
                             
-                            split = split[1].split('T');
-                            var dim = split[0];
-                            if (dim.trim() !== '3') return;
+                            var dim = r.dim;
                             
-                            var dis = parseInt(split[1]);
+                            var dis = r.dis;
 
                             coordinates.push(new google.maps.LatLng(gc.lat, gc.lng));
 
