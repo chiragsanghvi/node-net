@@ -160,6 +160,9 @@ var tcpServer = net.createServer(function (socket) {
     deleteClient(socket);
   });
 
+  //Keep socket alive for 30 seconds
+  socket.setKeepAlive(true, 30000);
+
   // Set idle timeout to 180000 (30 minutes)
   socket.setTimeout(1800000);
 
@@ -169,6 +172,16 @@ var tcpServer = net.createServer(function (socket) {
 
     // Destroy socket
     socket.destroy();
+
+    //delete client from clients
+    deleteClient(socket);
+  });
+
+  socket.on("close", function() {
+    sys.puts("Socket closed")
+
+    // Destroy socket
+    socket.end();
 
     //delete client from clients
     deleteClient(socket);
