@@ -2,8 +2,8 @@ var net = require("net"); //nodejs version of imports
  
 var cnt = 0;
 
-var HOST = 'tavisca-data2.cloudapp.net';
-//var HOST = 'localhost';
+//var HOST = 'tavisca-data2.cloudapp.net';
+var HOST = 'localhost';
 var PORT = 8086;
 var noOfClients = 0;
 
@@ -31,9 +31,10 @@ var clientTimer = setTimeout(function() {
             var data = {
                 did: "test123",
                 cid: "" + cnt,
-                gc: "10,20",
-                d: '3',
-                t : (requestCnt%10) == 0 ? 1 : 0
+                gc: "0,0",
+                d: "1",
+                t: "0",
+                tr: "404,86,c373,,25,544,31,404,86,c373,9c9d,25,542,24,404,86,c373,,45,543,21,404,86,c373,738d,36,547,11,404,86,c373,9e7b,17,546,20,404,86,c373,9c9c,5,537,9,0"
             };
 
             try {

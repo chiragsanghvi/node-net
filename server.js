@@ -51,7 +51,7 @@ var performOperation = function(message, socket) {
   logMessage(message.toString());
 
   domain.on('error', function(err) {
-    sys.puts("Error for " + socket.name + " : "  + err.message + '\n' + err.stack);
+    sys.puts("Data Error for " + socket.name + " : "  + err.message + '\n' + err.stack);
     domain.dispose();
   });
 
@@ -157,18 +157,39 @@ var tcpServer = net.createServer(function (socket) {
     deleteClient(socket);
   });
 
+  // Send socket alive every 45 seconds
+  socket.setKeepAlive(true, 45000);
+
   // Set idle timeout to 1800000 (30 minutes)
   socket.setTimeout(1800000);
 
   // Timeout handling for scokets
   socket.on("timeout", function() {
+    sys.puts(socket.name + " timed out");
+
     // Destroy socket
     socket.destroy();
 
     //delete client from clients
     deleteClient(socket);
   });
+ 
+  // Close signal from client side
+  socket.on("close", function() {
+    sys.puts(socket.name + " close signal received");
+
+    // Destroy socket
+    socket.end();
+
+    //delete client from clients
+    deleteClient(socket);
+  });
   
+  
+});
+
+tcpServer.on('error', function(e) {
+  sys.puts("\n\nTCP server error " + e.message + "\n Stack: " + e.stack + "\n\n");
 });
 
 // Start listening on port 8086
@@ -310,6 +331,10 @@ router.get('/scripts/jquery.js', function(request, response) {
 
 // Start an HTTP Server for logs with router
 var httpServer = require('http').createServer(router);
+
+httpServer.on('error', function(e) {
+  sys.puts("\n\nHttp server error " + e.message + "\n Stack: " + e.stack + "\n\n");
+});
 
 // Start listening on 8082
 httpServer.listen(8082);
