@@ -62,7 +62,7 @@ var performOperation = function(message, socket) {
       message = JSON.parse(cleanInput(message.toString()));
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
-      if(socket.writable) socket.write("401");
+      if (socket.writable) socket.write("401");
       return;
     }
 
@@ -141,14 +141,17 @@ var tcpServer = net.createServer(function (socket) {
  
   // Remove the client from the list when it leaves
   socket.on('end', function () {
+
+    sys.puts("Socket closed by other end");
+
     //delete client from clients
     deleteClient(socket);
   });
 
   // Error handling for sockets
   socket.on("error", function(err) {
-    console.log("Caught socket error for " + socket.name);
-    console.log(err.stack);
+    sys.puts("Caught socket error for " + socket.name);
+    sys.puts(err.stack);
 
     // Destroy socket
     socket.destroy();
@@ -158,10 +161,12 @@ var tcpServer = net.createServer(function (socket) {
   });
 
   // Set idle timeout to 180000 (30 minutes)
-  socket.setTimeout(180000);
+  socket.setTimeout(1800000);
 
   // Timeout handling for scokets
   socket.on("timeout", function() {
+    sys.puts("Socket timedout");
+
     // Destroy socket
     socket.destroy();
 
@@ -173,7 +178,11 @@ var tcpServer = net.createServer(function (socket) {
 
 // Start listening on port 8086
 tcpServer.listen(8086);
- 
+
+tcpServer.on('error', function(e) {
+  sys.puts("TCP server error " + e.message + "\n Stack: " + e.stack);
+});
+
 console.log("TCP Server running at port 8086");
 
 // Load Http library
@@ -310,6 +319,10 @@ router.get('/scripts/jquery.js', function(request, response) {
 
 // Start an HTTP Server for logs with router
 var httpServer = require('http').createServer(router);
+
+httpServer.on('error', function(e) {
+  sys.puts("Http server error " + e.message + "\n Stack: " + e.stack);
+});
 
 // Start listening on 8082
 httpServer.listen(8082);

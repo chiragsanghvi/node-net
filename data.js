@@ -148,6 +148,39 @@ var updateTrackerPosition = function(socket, message, geoCode) {
 	});
 };
 
+
+var insertInData = function(message, geoCode, socket) {
+  // Create Appacitive article object of type 'data'
+  var tempData = new Appacitive.Article('data');
+
+  // Set geoCode
+  tempData.set('geocode', geoCode);
+
+  // Set deviceid
+  tempData.set('deviceid', message.did);
+
+  if (message.b) tempData.set('battery', message.b);
+
+  if (message.tr) tempData.set('triangulation', message.tr);
+
+  if (message.t) tempData.set('type', message.t);
+
+  if (message.d) tempData.set('dimension', message.d);
+
+  if (message.sq) tempData.set('signalquality', message.sq);
+
+  if (message.cid) tempData.set('cid', message.cid);
+
+  // Save the object
+  tempData.save().then(function() {
+    sys.puts("New data article created with id : " + tempData.id());
+    if(socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + tempData.id());
+  }, function(err) {
+    sys.puts(JSON.stringify(err));
+    if(socket.writable) socket.write("500|" + ((message.cid) ? message.cid : 0));
+  });
+};
+
 exports.addData = function(message, socket) {
 	// Get Appacitive.GeoCoord object for gc sent in message
       var geoCode = getGeocode(message.gc);
@@ -155,11 +188,12 @@ exports.addData = function(message, socket) {
       // If geoCode is valid then create
       if (geoCode) {
 
+        insertInData(message, geoCode, socket);
+
       	if (geoCode.lat == 0 && geoCode.lng == 0) {
           if (message.t && message.t == '1') {
             updateTrackerPosition(socket, message, geoCode);
           }
-          if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + socket.apData ? socket.apData.id() : 0);
           return;
         } 
 
@@ -210,20 +244,20 @@ exports.addData = function(message, socket) {
 	        // Save the object
 	        return apData.save();
         }).then(function(apData) {
-          	if (apData.created) sys.puts("New data article created with id : " + apData.id());
-          	else sys.puts("Existing data article updated with id : " + apData.id());
+          	if (apData.created) sys.puts("New checkin article created with id : " + apData.id());
+          	else sys.puts("Existing checkin article updated with id : " + apData.id());
 
           	// Write 200 message on socket aknowledging success
-          	if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + apData.id());
+          	//if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + apData.id());
         }, function(err) {
            sys.puts(JSON.stringify(err));
-           if (socket.writable) socket.write("500|" + ((message.cid) ? message.cid : 0));
+           //if (socket.writable) socket.write("500|" + ((message.cid) ? message.cid : 0));
         });
 
         return;
     } else if (message.t && message.t == '1') {
         updateTrackerPosition(socket, message, new Appacitive.GeoCoord(0, 0));
-        if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + socket.apData ? socket.apData.id() : 0);
+        if (socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + (socket.apData ? socket.apData.id() : 0));
         return;
     }
     if (socket.writable) socket.write("400");	
