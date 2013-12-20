@@ -220,8 +220,6 @@
 
                 if (deviceId.trim().length == 0) return;
 
-                if(currentLocMarker) currentLocMarker.setMap(null);
-
                 $('#btnSearch').val('Searching...');
 
                 var date = $('#datetimepicker').data('datetimepicker').getLocalDate();
@@ -239,29 +237,41 @@
                     orderBy: '__utclastupdateddate'
                 });
 
-                var currentLocQuery = new Appacitive.Queries.FindAllQuery({
-                    pageSize: 5,
-                    schema: 'tracker',
-                    filter: Appacitive.Filter.Property('deviceid').equalTo(deviceId),
-                    fields: ["geocode", "__utclastupdateddate"]
-                });
-
-
-                currentLocQuery.fetch().then(function(location) {
-                    var gc = getGeocode(location[0].get('geocode'));
-                    currentLocMarker = new google.maps.Marker({
-                        position:  new google.maps.LatLng(gc.lat, gc.lng),
-                        icon: currentMarker,
-                        map: map,
-                        optimized: false
+                var setCurrentLocation = function() {
+                     
+                     var currentLocQuery = new Appacitive.Queries.FindAllQuery({
+                        pageSize: 1,
+                        schema: 'tracker',
+                        filter: Appacitive.Filter.Property('deviceid').equalTo(deviceId),
+                        fields: ["geocode", "__utclastupdateddate"]
                     });
 
-                     google.maps.event.addListener(currentLocMarker, 'click', function() {
-                        var content = location[0].get('__utclastupdateddate', 'datetime');
-                        currentInfowindow.setContent(String.format(contentString,content.toString()));
-                        currentInfowindow.open(map, currentLocMarker);
-                     });
-                });
+
+                    currentLocQuery.fetch().then(function(location) {
+                        var gc = getGeocode(location[0].get('geocode'));
+                        
+                        if (currentLocMarker) currentLocMarker.setMap(null);
+
+                        currentLocMarker = new google.maps.Marker({
+                            position:  new google.maps.LatLng(gc.lat, gc.lng),
+                            icon: currentMarker,
+                            map: map,
+                            optimized: false
+                        });
+
+                         google.maps.event.addListener(currentLocMarker, 'click', function() {
+                            var content = location[0].get('__utclastupdateddate', 'datetime');
+                            currentInfowindow.setContent(String.format(contentString,content.toString()));
+                            currentInfowindow.open(map, currentLocMarker);
+                         });
+                    });
+                };
+
+                setInterval(function() {
+                     setCurrentLocation();
+                }, 5000);
+
+                setCurrentLocation();
 
                 query.fetch().then(function(checkins) {
                     try {
@@ -400,9 +410,6 @@
             $('#btnSearch').bind('click', function(){
                 
                 initializeMaps($('#txtDeviceId').val().trim());
-                /*timer = setInterval(function(){
-                    initializeMaps($('#txtDeviceId').val().trim());
-                }, 20000);*/
             });
 
           </script>
