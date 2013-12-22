@@ -237,8 +237,10 @@
                     orderBy: '__utclastupdateddate'
                 });
 
+                clearInterval(timer);
+
                 var setCurrentLocation = function() {
-                     
+                    
                      var currentLocQuery = new Appacitive.Queries.FindAllQuery({
                         pageSize: 1,
                         schema: 'tracker',
@@ -267,7 +269,7 @@
                     });
                 };
 
-                setInterval(function() {
+                timer = setInterval(function() {
                      setCurrentLocation();
                 }, 5000);
 
