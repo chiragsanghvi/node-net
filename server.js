@@ -302,6 +302,18 @@ router.get('/devices/:deviceId', function(req, res){
   }
 });
 
+// Route to get all logs
+router.get('/logs', function(req, res){
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  res.end(JSON.stringify(JSON.stringify(Appacitive.logs)));
+});
+
+// Route to get all error logs
+router.get('/logs/errors', function(req, res){
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  res.end(JSON.stringify(JSON.stringify(Appacitive.logs.errors)));
+});
+
 var static = require('node-static');
 var fileServer = new static.Server('./maps');
 

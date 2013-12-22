@@ -180,7 +180,7 @@ var updateTrackerPosition = function(socket, message, geoCode) {
 	query.fetch().then(function(results) {
 		if (results.total == 0) {
       sys.puts("Creating tracker");
-			socket.tracker = new Appacitive.Article('tracker');
+			socket.tracker = new Appacitive.Object('tracker');
 		} else {
 			sys.puts("Found tracker with id " + results[0].id());
       socket.tracker = results[0];
