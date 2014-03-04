@@ -68,3 +68,50 @@ var clientTimer = setTimeout(function() {
         clearInterval(timer);
     }
 }, 100);
+
+
+/*
+
+var insertInData = function(message, geoCode, socket) {
+  // Create Appacitive article object of type 'data'
+  var tempData = new Appacitive.Article('data');
+
+  // Set geoCode
+  tempData.set('geocode', geoCode);
+
+  // Set deviceid
+  tempData.set('deviceid', message.did);
+
+  if (message.b) tempData.set('battery', message.b);
+
+  if (message.tr) tempData.set('triangulation', message.tr);
+
+  if (message.t) tempData.set('type', message.t);
+
+  if (message.d) tempData.set('dimension', message.d);
+
+  if (message.sq) tempData.set('signalquality', message.sq);
+
+  // Save the object
+  tempData.save().then(function() {
+    sys.puts("New data article created with id : " + tempData.id());
+    if(socket.writable) socket.write("200|" + ((message.cid) ? message.cid : 0) + "|" + tempData.id());
+  }, function(err) {
+    sys.puts(JSON.stringify(err));
+    if(socket.writable) socket.write("500|" + ((message.cid) ? message.cid : 0));
+  });
+};
+
+
+{"did":"test123","cid":"17:40:54","gc":"0,0","t":"0","d":"1","tr":"404,86,c373,,25,544,31,404,86,c373,9c9d,25,542,24,404,86,c373,,45,543,21,404,86,c373,738d,36,547,11,404,86,c373,9e7b,17,546,20,404,86,c373,9c9c,5,537,9,0","sq": "80","b":"40"}
+
+
+{"did":"114401760100293","cid":"17:35:1","gc":"0.0,0.0","t":"0","d":"1","tr":"404,86,c373,69d5,43,540,34,404,86,c373,9e7b,17,546,27,404,86,c373,9c9c,5,537,20,404,86,c373,9c9d,25,542,23,404,86,c373,9e7c,49,538,18,0","sq":"23"}
+
+forever start -al forever.log -o outl.log -e err.log server.js
+
+sudo sysctl -w net.inet.tcp.always_keepalive=1
+
+"12.964827761281963,77.7121544809904"
+
+"12.96412,77.71187" */

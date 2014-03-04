@@ -1,4 +1,7 @@
 // Load TCP , Sys and router modules
+
+require('util-log-timestamp');
+
 var net = require('net'),
   sys = require('sys'),
   data = require('./data.js'),
