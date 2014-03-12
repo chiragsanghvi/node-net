@@ -69,7 +69,6 @@ var clientTimer = setTimeout(function() {
     }
 }, 100);
 
-
 /*
 
 var insertInData = function(message, geoCode, socket) {
@@ -105,10 +104,14 @@ var insertInData = function(message, geoCode, socket) {
 
 {"did":"test123","cid":"17:40:54","gc":"0,0","t":"0","d":"1","tr":"404,86,c373,,25,544,31,404,86,c373,9c9d,25,542,24,404,86,c373,,45,543,21,404,86,c373,738d,36,547,11,404,86,c373,9e7b,17,546,20,404,86,c373,9c9c,5,537,9,0","sq": "80","b":"40"}
 
+{"did":"test123","t":"2"}
 
 {"did":"114401760100293","cid":"17:35:1","gc":"0.0,0.0","t":"0","d":"1","tr":"404,86,c373,69d5,43,540,34,404,86,c373,9e7b,17,546,27,404,86,c373,9c9c,5,537,20,404,86,c373,9c9d,25,542,23,404,86,c373,9e7c,49,538,18,0","sq":"23"}
 
-forever start -al forever.log -o outl.log -e err.log server.js
+
+redis-server
+
+forever start -al forever.log -o out.log -e err.log server.js
 
 sudo sysctl -w net.inet.tcp.always_keepalive=1
 

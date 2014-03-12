@@ -7,8 +7,20 @@ var net = require('net'),
   data = require('./data.js'),
   Appacitive = require('./AppacitiveSDK.js'),
   Router = require('node-simple-router');
-  
-// Keep track of the chat clients
+  firmwareConfig = require('./firmwareConfig.js');
+
+// To track config for changes of firmware version
+require('fs').watch('./firmwareConfig.js', function(e, filename) {
+  var oldFirmwareVersion = firmwareConfig.firmwareVersion;
+  delete require.cache[require.resolve('./firmwareConfig.js')];
+  firmwareConfig = require('./firmwareConfig.js');
+
+  data.setFirmwareVersion(firmwareConfig.firmwareVersion);
+
+  if (oldFirmwareVersion != firmwareConfig.firmwareVersion) console.log("FirmwareVersion changed from " + oldFirmwareVersion + " to " + firmwareConfig.firmwareVersion);
+});
+
+// Keep track of the device clients
 var clients = {};
 
 // An incremental id to assign a particular socket identify 
@@ -19,7 +31,6 @@ var noOfClients = 0;
 
 // A list of all sockets for devices
 var deviceSockets = {};
-
 
 // Cleans the input of carriage return, newline
 var cleanInput = function (data) {
@@ -44,6 +55,14 @@ var logMessage = function(message) {
   }
 };
 
+var sendUpgradeInformation = function(message, socket) {
+  var response = 'UPGRADE|' + firmwareConfig.firmwareVersion + '|' + firmwareConfig['server-ip'] + '|' 
+               + firmwareConfig['file-path'] + '|'
+               + firmwareConfig['username'] + '|'
+               + firmwareConfig['password'];
+  if (socket.writable)  socket.write(response);
+};
+
 // Parses the message and performs specific operation
 var performOperation = function(message, socket) {
 
@@ -65,7 +84,7 @@ var performOperation = function(message, socket) {
       message = JSON.parse(cleanInput(message.toString()));
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
-      if(socket.writable) socket.write("401");
+      if (socket.writable) socket.write( firmwareVersion + "|401");
       return;
     }
 
@@ -75,6 +94,7 @@ var performOperation = function(message, socket) {
       // Set this socket for a particular device 
       if (!deviceSockets[message.did]) deviceSockets[message.did] = { count: 0}
       
+      // Set no of connections for a particular device 
       if (!deviceSockets[message.did][socket.id]) deviceSockets[message.did].count++;
 
       // Set last seen property 
@@ -83,11 +103,17 @@ var performOperation = function(message, socket) {
       // Set deviceId in socket too
       socket.deviceId = message.did;
 
-      data.addData(message, socket);
-
+      
+      if (message.t && message.t == 2) {
+        sendUpgradeInformation(message, socket);
+      } else {
+        //if message type is 0 or 1 then call add data
+        data.addData(message, socket);
+      }
       return;
     } 
-    if(socket.writable) socket.write("400");
+
+    if(socket.writable) socket.write( firmwareVersion + "|400");
   });
 };
 
