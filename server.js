@@ -231,8 +231,8 @@ tcpServer.on('error', function(e) {
   sys.puts("\n\nTCP server error " + e.message + "\n Stack: " + e.stack + "\n\n");
 });
 
-// Start listening on port 8086
-tcpServer.listen(8086);
+// Start listening on port 8087
+tcpServer.listen(8087);
  
 console.log("TCP Server running at port 8086");
 
@@ -387,7 +387,7 @@ httpServer.on('error', function(e) {
   sys.puts("\n\nHttp server error " + e.message + "\n Stack: " + e.stack + "\n\n");
 });
 
-// Start listening on 8082
-httpServer.listen(8082);
+// Start listening on 8083
+httpServer.listen(8083);
 
 console.log("HTTP Server running at port 8081\n");
