@@ -3,7 +3,8 @@ var Appacitive = require('./AppacitiveSDK.js'),
 	epoch = require('./time.js'),
 	sys = require('sys'),
   triangClient = require('./triangClient.js'),
-  firmwareVersion = require('./firmwareConfig.js').firmwareVersion;
+  firmwareVersion = require('./firmwareConfig.js').firmwareVersion,
+  transferRate = require('./firmwareConfig.js').defaultRate;
 
 // Initialize it with apikey, appId and env
 Appacitive.initialize({
@@ -218,10 +219,10 @@ var insertInData = function(message, geoCode, socket) {
   // Save the object
   tempData.save().then(function() {
     sys.puts("New data object created with id : " + tempData.id());
-    if(socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|" + tempData.id());
+    if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + transferRate);
   }, function(err) {
     sys.puts(JSON.stringify(err));
-    if(socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0));
+    if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0));
   });
 };
 
@@ -245,7 +246,7 @@ exports.addData = function(message, socket) {
 
       //If message is of type panic then, no need to checkin
       if (message.t && message.t == 1) {
-        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|" + (socket.apData ? socket.apData.id() : 0));
+        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" + transferRate);
         return;
       } 
 
@@ -280,7 +281,7 @@ exports.addData = function(message, socket) {
           else sys.puts("Existing checkin object updated with id : " + apData.id());
 
           // Write 200 message on socket aknowledging success
-          //if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|" + apData.id());
+          //if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + transferRate);
       }, function(err) {
          sys.puts(JSON.stringify(err));
          //if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0));
@@ -289,7 +290,7 @@ exports.addData = function(message, socket) {
       // If message is of type panic then just send a panic message
       if (message.t && message.t == '1') {
         updateTrackerPosition(socket, message, new Appacitive.GeoCoord(0, 0));
-        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|" + socket.apData ? socket.apData.id() : 0);
+        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" + transferRate);
         return;
       }
       if (socket.writable) socket.write(firmwareVersion + "|400|" + ((message.cid) ? message.cid : 0));  
@@ -298,4 +299,8 @@ exports.addData = function(message, socket) {
 
 exports.setFirmwareVersion = function(ver) {
   firmwareVersion = ver;
+};
+
+exports.setRate = function(rate) {
+  transferRate = rate;
 };

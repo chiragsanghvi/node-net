@@ -7,17 +7,27 @@ var net = require('net'),
   data = require('./data.js'),
   Appacitive = require('./AppacitiveSDK.js'),
   Router = require('node-simple-router');
-  firmwareConfig = require('./firmwareConfig.js');
+  firmwareConfig = require('./firmwareConfig.js'),
+  transferRate = require('./firmwareConfig.js').defaultRate;
 
 // To track config for changes of firmware version
 require('fs').watch('./firmwareConfig.js', function(e, filename) {
   var oldFirmwareVersion = firmwareConfig.firmwareVersion;
+  var olTransferRate = firmwareConfig.defaultRate;
+
   delete require.cache[require.resolve('./firmwareConfig.js')];
   firmwareConfig = require('./firmwareConfig.js');
 
-  data.setFirmwareVersion(firmwareConfig.firmwareVersion);
+  if (oldFirmwareVersion != firmwareConfig.firmwareVersion) {
+    console.log("FirmwareVersion changed from " + oldFirmwareVersion + " to " + firmwareConfig.firmwareVersion);
+    data.setFirmwareVersion(firmwareConfig.firmwareVersion);
+  }
 
-  if (oldFirmwareVersion != firmwareConfig.firmwareVersion) console.log("FirmwareVersion changed from " + oldFirmwareVersion + " to " + firmwareConfig.firmwareVersion);
+  if (olTransferRate != firmwareConfig.defaultRate) {
+    console.log("Transfer Rate changed from " + olTransferRate + " to " + firmwareConfig.defaultRate);
+    data.setRate(firmwareConfig.defaultRate);
+  }
+
 });
 
 // Keep track of the device clients
