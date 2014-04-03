@@ -69,7 +69,7 @@ var sendUpgradeInformation = function(message, socket) {
   var response = 'UPGRADE|' + firmwareConfig.firmwareVersion + '|' + firmwareConfig['server-ip'] + '|' 
                + firmwareConfig['file-path'] + '|'
                + firmwareConfig['username'] + '|'
-               + firmwareConfig['password'];
+               + firmwareConfig['password'] + '|';
   if (socket.writable)  socket.write(response);
 };
 
@@ -123,7 +123,7 @@ var performOperation = function(message, socket) {
       return;
     } 
 
-    if(socket.writable) socket.write( firmwareVersion + "|400");
+    if(socket.writable) socket.write( firmwareVersion + "|400|");
   });
 };
 
