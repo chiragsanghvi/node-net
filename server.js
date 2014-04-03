@@ -94,7 +94,7 @@ var performOperation = function(message, socket) {
       message = JSON.parse(cleanInput(message.toString()));
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
-      if (socket.writable) socket.write( firmwareVersion + "|401");
+      if (socket.writable) socket.write( firmwareConfig.firmwareVersion + "|401");
       return;
     }
 
