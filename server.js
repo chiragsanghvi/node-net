@@ -7,13 +7,11 @@ var net = require('net'),
   data = require('./data.js'),
   Appacitive = require('./AppacitiveSDK.js'),
   Router = require('node-simple-router');
-  config = require('./config.js'),
-  transferRate = require('./config.js').defaultRate;
+  config = require('./config.js');
 
 // To track config for changes of firmware version
 require('fs').watch('./config.js', function(e, filename) {
   var oldFirmwareVersion = config.firmwareVersion;
-  var olTransferRate = config.defaultRate;
 
   delete require.cache[require.resolve('./config.js')];
   config = require('./config.js');
@@ -23,11 +21,9 @@ require('fs').watch('./config.js', function(e, filename) {
     data.setFirmwareVersion(config.firmwareVersion);
   }
 
-  if (olTransferRate != config.defaultRate) {
-    console.log("Transfer Rate changed from " + olTransferRate + " to " + config.defaultRate);
-    data.setRate(config.defaultRate);
-  }
-
+  console.log("config file changed");
+  data.setConfig(config);
+  
 });
 
 // Keep track of the device clients
@@ -94,7 +90,7 @@ var performOperation = function(message, socket) {
       message = JSON.parse(cleanInput(message.toString()));
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
-      if (socket.writable) socket.write( config.firmwareVersion + "|400");
+      if (socket.writable) socket.write( config.firmwareVersion + "|400|");
       return;
     }
 

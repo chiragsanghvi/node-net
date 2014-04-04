@@ -3,8 +3,8 @@ var Appacitive = require('./AppacitiveSDK.js'),
 	epoch = require('./time.js'),
 	sys = require('sys'),
   triangClient = require('./triangClient.js'),
-  firmwareVersion = require('./config.js').firmwareVersion,
-  transferRate = require('./config.js').defaultRate;
+  config = require('./config.js'),
+  firmwareVersion = config.firmwareVersion;
 
 // Initialize it with apikey, appId and env
 Appacitive.initialize({
@@ -246,7 +246,7 @@ exports.addData = function(message, socket) {
 
       //If message is of type panic then, no need to checkin
       if (message.t && message.t == 1) {
-        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" + transferRate  + '|');
+        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" +  config.getTransferRate(message.b)  + '|');
         return;
       } 
 
@@ -281,19 +281,19 @@ exports.addData = function(message, socket) {
           else sys.puts("Existing checkin object updated with id : " + apData.id());
 
           // Write 200 message on socket aknowledging success
-          if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + transferRate  + '|');
+          if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + config.getTransferRate(message.b)  + '|');
       }, function(err) {
          sys.puts(JSON.stringify(err));
-         if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0) + "|r:" + transferRate  + '|');
+         if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0) + "|r:" + config.getTransferRate(message.b)  + '|');
       });
     }, function() {
       // If message is of type panic then just send a panic message
       if (message.t && message.t == '1') {
         updateTrackerPosition(socket, message, new Appacitive.GeoCoord(0, 0));
-        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" + transferRate  + '|');
+        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" + config.getTransferRate(message.b)  + '|');
         return;
       }
-      if (socket.writable) socket.write(firmwareVersion + "|400|" + ((message.cid) ? message.cid : 0) + '|');  
+      if (socket.writable) socket.write(firmwareVersion + "|400|" + ((message.cid) ? message.cid : 0) + '|r:');  
     });  
 };
 
@@ -301,6 +301,6 @@ exports.setFirmwareVersion = function(ver) {
   firmwareVersion = ver;
 };
 
-exports.setRate = function(rate) {
-  transferRate = rate;
+exports.setConfig = function(cfg) {
+  config = cfg;
 };
