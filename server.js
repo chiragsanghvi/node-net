@@ -7,25 +7,25 @@ var net = require('net'),
   data = require('./data.js'),
   Appacitive = require('./AppacitiveSDK.js'),
   Router = require('node-simple-router');
-  firmwareConfig = require('./firmwareConfig.js'),
-  transferRate = require('./firmwareConfig.js').defaultRate;
+  config = require('./config.js'),
+  transferRate = require('./config.js').defaultRate;
 
 // To track config for changes of firmware version
-require('fs').watch('./firmwareConfig.js', function(e, filename) {
-  var oldFirmwareVersion = firmwareConfig.firmwareVersion;
-  var olTransferRate = firmwareConfig.defaultRate;
+require('fs').watch('./config.js', function(e, filename) {
+  var oldFirmwareVersion = config.firmwareVersion;
+  var olTransferRate = config.defaultRate;
 
-  delete require.cache[require.resolve('./firmwareConfig.js')];
-  firmwareConfig = require('./firmwareConfig.js');
+  delete require.cache[require.resolve('./config.js')];
+  config = require('./config.js');
 
-  if (oldFirmwareVersion != firmwareConfig.firmwareVersion) {
-    console.log("FirmwareVersion changed from " + oldFirmwareVersion + " to " + firmwareConfig.firmwareVersion);
-    data.setFirmwareVersion(firmwareConfig.firmwareVersion);
+  if (oldFirmwareVersion != config.firmwareVersion) {
+    console.log("FirmwareVersion changed from " + oldFirmwareVersion + " to " + config.firmwareVersion);
+    data.setFirmwareVersion(config.firmwareVersion);
   }
 
-  if (olTransferRate != firmwareConfig.defaultRate) {
-    console.log("Transfer Rate changed from " + olTransferRate + " to " + firmwareConfig.defaultRate);
-    data.setRate(firmwareConfig.defaultRate);
+  if (olTransferRate != config.defaultRate) {
+    console.log("Transfer Rate changed from " + olTransferRate + " to " + config.defaultRate);
+    data.setRate(config.defaultRate);
   }
 
 });
@@ -66,10 +66,10 @@ var logMessage = function(message) {
 };
 
 var sendUpgradeInformation = function(message, socket) {
-  var response = 'UPGRADE|' + firmwareConfig.firmwareVersion + '|' + firmwareConfig['server-ip'] + '|' 
-               + firmwareConfig['file-path'] + '|'
-               + firmwareConfig['username'] + '|'
-               + firmwareConfig['password'] + '|';
+  var response = 'UPGRADE|' + config.firmwareVersion + '|' + config['server-ip'] + '|' 
+               + config['file-path'] + '|'
+               + config['username'] + '|'
+               + config['password'] + '|';
   if (socket.writable)  socket.write(response);
 };
 
@@ -94,7 +94,7 @@ var performOperation = function(message, socket) {
       message = JSON.parse(cleanInput(message.toString()));
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
-      if (socket.writable) socket.write( firmwareConfig.firmwareVersion + "|401");
+      if (socket.writable) socket.write( config.firmwareVersion + "|400");
       return;
     }
 
@@ -231,10 +231,10 @@ tcpServer.on('error', function(e) {
   sys.puts("\n\nTCP server error " + e.message + "\n Stack: " + e.stack + "\n\n");
 });
 
-// Start listening on port 8087
-tcpServer.listen(8087);
+// Start listening on tcp-port read from config
+tcpServer.listen(config['tcp-port']);
  
-console.log("TCP Server running at port 8086");
+console.log("TCP Server running at port " + config['tcp-port']);
 
 // Load Http library
 var http = require('http');
@@ -387,7 +387,7 @@ httpServer.on('error', function(e) {
   sys.puts("\n\nHttp server error " + e.message + "\n Stack: " + e.stack + "\n\n");
 });
 
-// Start listening on 8083
-httpServer.listen(8083);
+// Start listening on http-port in config
+httpServer.listen(config['http-port']);
 
-console.log("HTTP Server running at port 8081\n");
+console.log("HTTP Server running at port " + config['http-port'] + "\n");

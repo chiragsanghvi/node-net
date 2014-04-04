@@ -4,5 +4,7 @@ module.exports = {
 	'file-path': './OATAPP/testDOTA.dwl',
 	'username': 'admin',
 	'password': '1qaz1qaz',
-	'defaultRate': 2
+	'defaultRate': 2,
+	'tcp-port': 8087,
+	'http-port': 8083
 };
