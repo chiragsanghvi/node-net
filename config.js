@@ -19,7 +19,13 @@ module.exports = {
 		20: 300,
 		10: 600
 	},
-	getTransferRate: function(battery) {
+	getTransferRate: function(message) {
+
+		if (message && message.t == 3) return 2;
+
+		message = message || {};
+		var battery = message.b;
+		
 		if (!battery) return this.defaultRate;
 
 		if (battery > 90) return this['mapping-rate'][100];

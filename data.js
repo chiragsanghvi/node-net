@@ -246,7 +246,7 @@ exports.addData = function(message, socket) {
 
       //If message is of type panic then, no need to checkin
       if (message.t && message.t == 1) {
-        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" +  config.getTransferRate(message.b)  + '|');
+        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" +  config.getTransferRate(message)  + '|');
         return;
       } 
 
@@ -281,19 +281,19 @@ exports.addData = function(message, socket) {
           else sys.puts("Existing checkin object updated with id : " + apData.id());
 
           // Write 200 message on socket aknowledging success
-          if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + config.getTransferRate(message.b)  + '|');
+          if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + config.getTransferRate(message)  + '|');
       }, function(err) {
          sys.puts(JSON.stringify(err));
-         if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0) + "|r:" + config.getTransferRate(message.b)  + '|');
+         if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0) + "|r:" + config.getTransferRate(message)  + '|');
       });
     }, function() {
       // If message is of type panic then just send a panic message
       if (message.t && message.t == '1') {
         updateTrackerPosition(socket, message, new Appacitive.GeoCoord(0, 0));
-        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" + config.getTransferRate(message.b)  + '|');
+        if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0) + "|r:" + config.getTransferRate(message)  + '|');
         return;
       }
-      if (socket.writable) socket.write(firmwareVersion + "|400|" + ((message.cid) ? message.cid : 0) + '|r:');  
+      if (socket.writable) socket.write(firmwareVersion + "|400|" + ((message.cid) ? message.cid : 0));  
     });  
 };
 
