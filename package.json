@@ -15,6 +15,7 @@
     "node-simple-router": "x",
     "redis":"x.x.x",
     "hiredis":"x.x.x",
-    "node-static":"x"
+    "node-static":"x",
+    "util-log-timestamp": "x"
   }
 }
