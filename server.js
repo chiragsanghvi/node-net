@@ -46,12 +46,11 @@ var cleanInput = function (data) {
 // Log initial message on server
 var logMessage = function(message) {
   if (message && message.trim().length > 0) {
-    var log = new Appacitive.Object('log');
-    log.set('message', message);
-
     var domain = require('domain').create();
 
     domain.run(function(){
+      var log = new Appacitive.Object('log');
+      log.set('message', message);
       log.save();
     });
 

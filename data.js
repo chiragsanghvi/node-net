@@ -219,10 +219,10 @@ var insertInData = function(message, geoCode, socket) {
   // Save the object
   tempData.save().then(function() {
     sys.puts("New data object created with id : " + tempData.id());
-    //if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + transferRate + '|');
+    if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + config.getTransferRate(message) + '|');
   }, function(err) {
     sys.puts(JSON.stringify(err));
-    //if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0) + '|');
+    if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0) + '|');
   });
 };
 
@@ -281,10 +281,10 @@ exports.addData = function(message, socket) {
           else sys.puts("Existing checkin object updated with id : " + apData.id());
 
           // Write 200 message on socket aknowledging success
-          if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + config.getTransferRate(message)  + '|');
+          //if (socket.writable) socket.write(firmwareVersion + "|200|" + ((message.cid) ? message.cid : 0)  + "|r:" + config.getTransferRate(message)  + '|');
       }, function(err) {
          sys.puts(JSON.stringify(err));
-         if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0) + "|r:" + config.getTransferRate(message)  + '|');
+         //if (socket.writable) socket.write(firmwareVersion + "|500|" + ((message.cid) ? message.cid : 0) + "|r:" + config.getTransferRate(message)  + '|');
       });
     }, function() {
       // If message is of type panic then just send a panic message
