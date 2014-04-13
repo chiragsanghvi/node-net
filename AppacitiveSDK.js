@@ -855,7 +855,7 @@ var global = {};
 	    		referenceId: status.referenceid,
 	    		date: new Date().toISOString(),
 	    		method: body['m'],
-	    		url: request.url,
+	    		url: decodeURIComponent(request.url),
 	    		responseTime : request.timeTakenInMilliseconds,
 	    		headers: {},
 	    		request: null,

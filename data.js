@@ -10,7 +10,8 @@ var Appacitive = require('./AppacitiveSDK.js'),
 Appacitive.initialize({
   apikey: 'Wze3QDlA5oM8uHhCK9mTRehqKqJPWKpoOn4u2k+29s8=',
   appId: '43687051486429854',
-  env: 'sandbox'
+  env: 'sandbox',
+  log: true
 });
 
 // Change base URL for Appacitive
