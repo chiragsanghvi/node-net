@@ -119,7 +119,7 @@ var performOperation = function(message, socket) {
       return;
     } 
 
-    if(socket.writable) socket.write( firmwareVersion + "|400|");
+    if (socket.writable) socket.write( config.firmwareVersion + "|400|");
   });
 };
 
