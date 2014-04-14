@@ -4,7 +4,7 @@
  * MIT license  : http://www.apache.org/licenses/LICENSE-2.0.html
  * Project      : https://github.com/chiragsanghvi/JavascriptSDK
  * Contact      : support@appacitive.com | csanghvi@appacitive.com
- * Build time 	: Mon Apr 14 12:17:51 IST 2014
+ * Build time 	: Mon Apr 14 13:33:58 IST 2014
  */
 "use strict";
 
@@ -843,6 +843,8 @@ var global = {};
 
     global.Appacitive.logs.exceptions = []; 
 
+    global.Appacitive.logs.errors = []; 
+
     var quicklog = function(logs, pathName) {
 
     	if (logs.length > 25) {
@@ -917,9 +919,11 @@ var global = {};
 		    }
 	    	
 	    	if (type == 'error') {
-	    		console.dir(log);
+	    		if (global.Appacitive.runtime.isBrowser) console.dir(log);
 	    		this.errors.push(log);
+	    		quicklog(this.errors, 'errorPath');
 		    }
+
 		    this.push(log);
 
 		    quicklog(this, 'logPath');
@@ -1423,7 +1427,6 @@ var global = {};
                     if (global.Appacitive.log) {
                         var err = {name: error.name, message: error.message, stack: error.stack};
                         global.Appacitive.logs.logException(err);
-                        console.dir(err);
                     }   
                     if (promise.calls.length == 0) throw new Error({ name: error.name, message: error.message, stack: error.stack });
                     else promise.reject(error);
@@ -1976,6 +1979,7 @@ Depends on  NOTHING
 				global.Appacitive.log = {};
 				global.Appacitive.log.logPath = './api.log';
 				global.Appacitive.log.exceptionPath = './exception.log';
+				global.Appacitive.log.errotPath = './apierror.log';
 			}
 		}
 
