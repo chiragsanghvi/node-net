@@ -339,13 +339,13 @@ router.get('/devices/:deviceId', function(req, res){
 // Route to get all logs
 router.get('/logs', function(req, res){
   res.writeHead(200, {'Content-Type': 'application/json'});
-  res.end(JSON.stringify(Appacitive.logs));
+  res.end(JSON.stringify(Appacitive.logs, undefined, 2));
 });
 
 // Route to get all error logs
 router.get('/logs/errors', function(req, res){
   res.writeHead(200, {'Content-Type': 'application/json'});
-  res.end(JSON.stringify(Appacitive.logs.errors));
+  res.end(JSON.stringify(Appacitive.logs.errors, undefined, 2));
 });
 
 router.get('/forever', function(req, res) {
