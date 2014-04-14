@@ -2,16 +2,16 @@ var net = require("net"); //nodejs version of imports
  
 var cnt = 0;
 
-//var HOST = 'tavisca-data2.cloudapp.net';
+//var HOST = 'dataapp-net.cloudapp.net';
 var HOST = 'localhost';
-var PORT = 8086;
+var PORT = 8087;
 var noOfClients = 0;
 
 var dids = [1,2,3,4,5,6,7];
 
-var clientTimer = setTimeout(function() {
+var clientTimer = setInterval(function() {
 
-    clearInterval(clientTimer);
+    //clearInterval(clientTimer);
 
     var client = new net.Socket();
     var requestCnt = 0;
@@ -31,10 +31,10 @@ var clientTimer = setTimeout(function() {
             var data = {
                 did: "test123",
                 cid: "" + cnt,
-                gc: "0,0",
-                d: "1",
-                t: "0",
-                tr: "404,86,c373,,25,544,31,404,86,c373,9c9d,25,542,24,404,86,c373,,45,543,21,404,86,c373,738d,36,547,11,404,86,c373,9e7b,17,546,20,404,86,c373,9c9c,5,537,9,0"
+                gc: "12.9611,77.5455",
+                d: "3",
+                t: "0"
+                //tr: "404,86,c373,,25,544,31,404,86,c373,9c9d,25,542,24,404,86,c373,,45,543,21,404,86,c373,738d,36,547,11,404,86,c373,9e7b,17,546,20,404,86,c373,9c9c,5,537,9,0"
             };
 
             try {
@@ -67,7 +67,7 @@ var clientTimer = setTimeout(function() {
         clearInterval(clientTimer);
         clearInterval(timer);
     }
-}, 100);
+}, 2000);
 
 /*
 
@@ -104,6 +104,10 @@ var insertInData = function(message, geoCode, socket) {
 
 {"did":"test123","cid":"17:40:54","gc":"0,0","t":"0","d":"1","tr":"404,86,c373,,25,544,31,404,86,c373,9c9d,25,542,24,404,86,c373,,45,543,21,404,86,c373,738d,36,547,11,404,86,c373,9e7b,17,546,20,404,86,c373,9c9c,5,537,9,0","sq": "80","b":"40"}
 
+{"did" : "test123","cid" : "17:40:54","gc" : "12.9611,77.5455", "t" : "0","d" : "3","b" : "40"} 
+
+{"did" : "test123","cid" : "17:40:54","gc" : "12.9611,77.5455", "t" : "3","d" : "3","b" : "40"} 
+
 {"did":"test123","t":"2"}
 
 {"did":"114401760100293","cid":"17:35:1","gc":"0.0,0.0","t":"0","d":"1","tr":"404,86,c373,69d5,43,540,34,404,86,c373,9e7b,17,546,27,404,86,c373,9c9c,5,537,20,404,86,c373,9c9d,25,542,23,404,86,c373,9e7c,49,538,18,0","sq":"23"}
@@ -111,7 +115,7 @@ var insertInData = function(message, geoCode, socket) {
 
 redis-server
 
-forever start -al forever.log -o out.log -e err.log server.js
+forever start -al data1.log -o out.log -e err.log server.js
 
 sudo sysctl -w net.inet.tcp.always_keepalive=1
 
