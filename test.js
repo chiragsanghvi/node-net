@@ -2,8 +2,8 @@ var net = require("net"); //nodejs version of imports
  
 var cnt = 0;
 
-//var HOST = 'dataapp-net.cloudapp.net';
-var HOST = 'localhost';
+var HOST = 'dataapp-net.cloudapp.net';
+//var HOST = 'localhost';
 var PORT = 8087;
 var noOfClients = 0;
 
@@ -11,7 +11,7 @@ var dids = [1,2,3,4,5,6,7];
 
 var clientTimer = setInterval(function() {
 
-    //clearInterval(clientTimer);
+    clearInterval(clientTimer);
 
     var client = new net.Socket();
     var requestCnt = 0;
@@ -47,7 +47,7 @@ var clientTimer = setInterval(function() {
                 client.destroy();
                 clearInterval(timer);
             }
-        }, 1000);
+        }, 500);
     });
 
     // Add a 'data' event handler for the client socket
@@ -67,7 +67,7 @@ var clientTimer = setInterval(function() {
         clearInterval(clientTimer);
         clearInterval(timer);
     }
-}, 2000);
+}, 1000);
 
 /*
 

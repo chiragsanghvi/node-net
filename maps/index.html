@@ -173,6 +173,11 @@
                 pixelOffset: new google.maps.Size(0, 20)
             }); 
 
+            var infowindow = new google.maps.InfoWindow({
+                pixelOffset: new google.maps.Size(-1, 0)
+            }); 
+
+
             var currentMarker = new google.maps.MarkerImage("images/current.gif");
             currentMarker.size = new google.maps.Size(60, 60);
             currentMarker.anchor = new google.maps.Point(30, 30);
@@ -197,6 +202,7 @@
                               '</div>'+
                               '</div>';
 
+
             var getCooodinatesWithinRadius = function(radius, markers) {
                 var $lat = markers[0].position.lat();
                 var $lon = markers[0].position.lng();
@@ -215,6 +221,35 @@
             }
 
             var lastFetchedId = null;
+
+            /**
+             * Handles click events on a map, and adds a new point to the Polyline.
+             * @param {google.maps.MouseEvent} event
+             */
+            var addLatLng = function (event) {
+
+                marker = new google.maps.Marker({
+                    position: event.latLng,
+                    map: map,
+                    icon: otherMarker
+                });
+                
+                markers.push(marker);
+                
+                google.maps.event.addListener(marker, 'click', (function(marker, j) {
+                    return function() {
+                        var content = '';
+                        infowindow.setContent(String.format(contentString, event.time));
+                        infowindow.open(map, marker);
+                    }
+                })(marker, i));
+
+                var poly = path.getPath();
+
+                // Because path is an MVCArray, we can simply append a new coordinate
+                // and it will automatically appear.
+                poly.push(event.latLng);
+            };
 
             function initializeMaps(deviceId) {
 
@@ -239,7 +274,7 @@
 
                 clearInterval(timer);
 
-                var setCurrentLocation = function() {
+                var setCurrentLocation = function(addPath) {
                     
                      var currentLocQuery = new Appacitive.Queries.FindAllQuery({
                         pageSize: 1,
@@ -261,16 +296,21 @@
                             optimized: false
                         });
 
-                         google.maps.event.addListener(currentLocMarker, 'click', function() {
+                        google.maps.event.addListener(currentLocMarker, 'click', function() {
                             var content = location[0].get('__utclastupdateddate', 'datetime');
                             currentInfowindow.setContent(String.format(contentString,content.toString()));
                             currentInfowindow.open(map, currentLocMarker);
-                         });
+                        });
+
+                        if (addPath) {
+                            addLatLng({ latLng: new google.maps.LatLng(gc.lat, gc.lng), time: location[0].get('__utclastupdateddate', 'datetime') });
+                        }
+
                     });
                 };
 
                 timer = setInterval(function() {
-                     setCurrentLocation();
+                     setCurrentLocation(true);
                 }, 5000);
 
                 setCurrentLocation();
@@ -284,9 +324,7 @@
                         }
 
                         markers = [];
-                        var infowindow = new google.maps.InfoWindow({
-                            pixelOffset: new google.maps.Size(-1, 0)
-                        }); 
+                        
                         var marker, i;
                         //var bounds = new google.maps.LatLngBounds();
 
