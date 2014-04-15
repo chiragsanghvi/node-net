@@ -70,6 +70,10 @@
             <div style="margin-left: 10px; display: inline;">
                 <input type="button" id="btnSearch" class="btn btn-default" style="top: 10px;position:absolute;" value="search"/>
             </div>
+            <div style=" display: inline;margin-left: 120px;height: 30px;position: absolute;line-height: 30px;color: white;">
+                <input type="checkbox" id="btnCenter" style="margin: 0px;" checked="checked"> 
+                <label style="display: inline;line-height: 20px;margin-left: 5px;">Center map</label>
+            </div>
         </div>
         <!-- bring in the google maps library -->
         <script type="text/javascript">
@@ -306,6 +310,9 @@
                             addLatLng({ latLng: new google.maps.LatLng(gc.lat, gc.lng), time: location[0].get('__utclastupdateddate', 'datetime') });
                         }
 
+                        if ($('#btnCenter').is(':checked')) {
+                            map.setCenter(new google.maps.LatLng(gc.lat, gc.lng));
+                        }
                     });
                 };
 
