@@ -10,7 +10,7 @@ var net = require('net'),
   config = require('./config.js');
 
 // To track config for changes of firmware version
-require('fs').watch('./config.js', function(e, filename) {
+require('fs').watch(__dirname + '/config.js', function(e, filename) {
   var oldFirmwareVersion = config.firmwareVersion;
 
   delete require.cache[require.resolve('./config.js')];
