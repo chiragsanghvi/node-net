@@ -308,7 +308,7 @@
 
                         if (addPath) {
                             addLatLng({ latLng: new google.maps.LatLng(gc.lat, gc.lng), time: location[0].get('__utclastupdateddate', 'datetime') });
-                        
+                        }
 
                         if ($('#btnCenter').is(':checked')) {
                             map.setCenter(new google.maps.LatLng(gc.lat, gc.lng));
