@@ -68,7 +68,11 @@
                 <select id="slctTime" style="width:75px;"> </select>
             </div>
             <div style="margin-left: 10px; display: inline;">
-                <input type="button" id="btnSearch" class="btn btn-default" style="top: 10px;position:absolute;" value="search"/>
+                <input type="button" id="btnSearch" class="btn btn-default" style="top: 10px;position:absolute;background-position:initial !important;" value="search"/>
+            </div>
+            <div style=" display: inline;margin-left: 120px;height: 30px;position: absolute;line-height: 30px;color: white;">
+                <input type="checkbox" id="btnCenter" style="margin: 0px;" checked="checked"> 
+                <label style="display: inline;line-height: 20px;margin-left: 5px;">Center map</label>
             </div>
             <div style=" display: inline;margin-left: 120px;height: 30px;position: absolute;line-height: 30px;color: white;">
                 <input type="checkbox" id="btnCenter" style="margin: 0px;" checked="checked"> 
@@ -92,7 +96,7 @@
           $('#datetimepicker').datetimepicker({
             maskInput: true,
             format: 'dd/MM/yyyy',
-            language: 'pt-BR',
+            language: 'pt-EN',
             pickTime: false
           });
           
@@ -316,8 +320,12 @@
                     });
                 };
 
+                var date = new Date();
+
+                var win1 = getWindowWithDisplacement(date);
+
                 timer = setInterval(function() {
-                     setCurrentLocation(true);
+                    setCurrentLocation(win1.window == win.window);
                 }, 5000);
 
                 setCurrentLocation();

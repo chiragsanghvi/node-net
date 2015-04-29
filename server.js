@@ -7,17 +7,23 @@ var net = require('net'),
   data = require('./data.js'),
   Appacitive = require('./AppacitiveSDK.js'),
   Router = require('node-simple-router');
-  firmwareConfig = require('./firmwareConfig.js');
+  config = require('./config.js');
 
 // To track config for changes of firmware version
-require('fs').watch('./firmwareConfig.js', function(e, filename) {
-  var oldFirmwareVersion = firmwareConfig.firmwareVersion;
-  delete require.cache[require.resolve('./firmwareConfig.js')];
-  firmwareConfig = require('./firmwareConfig.js');
+require('fs').watch(__dirname + '/config.js', function(e, filename) {
+  var oldFirmwareVersion = config.firmwareVersion;
 
-  data.setFirmwareVersion(firmwareConfig.firmwareVersion);
+  delete require.cache[require.resolve('./config.js')];
+  config = require('./config.js');
 
-  if (oldFirmwareVersion != firmwareConfig.firmwareVersion) console.log("FirmwareVersion changed from " + oldFirmwareVersion + " to " + firmwareConfig.firmwareVersion);
+  if (oldFirmwareVersion != config.firmwareVersion) {
+    console.log("FirmwareVersion changed from " + oldFirmwareVersion + " to " + config.firmwareVersion);
+    data.setFirmwareVersion(config.firmwareVersion);
+  }
+
+  console.log("config file changed");
+  data.setConfig(config);
+  
 });
 
 // Keep track of the device clients
@@ -40,12 +46,11 @@ var cleanInput = function (data) {
 // Log initial message on server
 var logMessage = function(message) {
   if (message && message.trim().length > 0) {
-    var log = new Appacitive.Object('log');
-    log.set('message', message);
-
     var domain = require('domain').create();
 
     domain.run(function(){
+      var log = new Appacitive.Object('log');
+      log.set('message', message);
       log.save();
     });
 
@@ -56,10 +61,10 @@ var logMessage = function(message) {
 };
 
 var sendUpgradeInformation = function(message, socket) {
-  var response = 'UPGRADE|' + firmwareConfig.firmwareVersion + '|' + firmwareConfig['server-ip'] + '|' 
-               + firmwareConfig['file-path'] + '|'
-               + firmwareConfig['username'] + '|'
-               + firmwareConfig['password'];
+  var response = 'UPGRADE|' + config.firmwareVersion + '|' + config['server-ip'] + '|' 
+               + config['file-path'] + '|'
+               + config['username'] + '|'
+               + config['password'] + '|';
   if (socket.writable)  socket.write(response);
 };
 
@@ -84,7 +89,7 @@ var performOperation = function(message, socket) {
       message = JSON.parse(cleanInput(message.toString()));
     } catch(e) {
       sys.puts("Error for " + socket.name + " : " + e.message);
-      if (socket.writable) socket.write( firmwareVersion + "|401");
+      if (socket.writable) socket.write( config.firmwareVersion + "|400|");
       return;
     }
 
@@ -113,7 +118,7 @@ var performOperation = function(message, socket) {
       return;
     } 
 
-    if(socket.writable) socket.write( firmwareVersion + "|400");
+    if (socket.writable) socket.write( config.firmwareVersion + "|400|");
   });
 };
 
@@ -221,10 +226,10 @@ tcpServer.on('error', function(e) {
   sys.puts("\n\nTCP server error " + e.message + "\n Stack: " + e.stack + "\n\n");
 });
 
-// Start listening on port 8086
-tcpServer.listen(8086);
+// Start listening on tcp-port read from config
+tcpServer.listen(config['tcp-port']);
  
-console.log("TCP Server running at port 8086");
+console.log("TCP Server running at port " + config['tcp-port']);
 
 // Load Http library
 var http = require('http');
@@ -334,13 +339,29 @@ router.get('/devices/:deviceId', function(req, res){
 // Route to get all logs
 router.get('/logs', function(req, res){
   res.writeHead(200, {'Content-Type': 'application/json'});
-  res.end(JSON.stringify(JSON.stringify(Appacitive.logs)));
+  res.end(JSON.stringify(Appacitive.logs, undefined, 2));
 });
 
 // Route to get all error logs
 router.get('/logs/errors', function(req, res){
   res.writeHead(200, {'Content-Type': 'application/json'});
-  res.end(JSON.stringify(JSON.stringify(Appacitive.logs.errors)));
+  res.end(JSON.stringify(Appacitive.logs.errors, undefined, 2));
+});
+
+router.get('/forever', function(req, res) {
+    res.writeHead(200, { 'Content-Type': 'text/plain'});
+    var sys = require('sys')
+    var exec = require('child_process').exec;
+    var child;
+
+    // executes `pwd`
+    child = exec("forever logs 0", function (error, stdout, stderr) {
+      if (error !== null) {
+        res.end("");
+      } else {
+        res.end(stdout);
+      }
+    });
 });
 
 var static = require('node-static');
@@ -377,7 +398,7 @@ httpServer.on('error', function(e) {
   sys.puts("\n\nHttp server error " + e.message + "\n Stack: " + e.stack + "\n\n");
 });
 
-// Start listening on 8082
-httpServer.listen(8082);
+// Start listening on http-port in config
+httpServer.listen(config['http-port']);
 
-console.log("HTTP Server running at port 8081\n");
+console.log("HTTP Server running at port " + config['http-port'] + "\n");
