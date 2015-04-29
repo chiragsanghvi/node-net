@@ -6,6 +6,9 @@ var Appacitive = require('./AppacitiveSDK.js'),
   config = require('./config.js'),
   firmwareVersion = config.firmwareVersion;
 
+  var http = require('http');
+
+
 // Initialize it with apikey, appId and env
 Appacitive.initialize({
   apikey: 'Wze3QDlA5oM8uHhCK9mTRehqKqJPWKpoOn4u2k+29s8=',
@@ -236,6 +239,8 @@ exports.addData = function(message, socket) {
     getGeocode(message).then(function(geoCode) {
       
       // TODO: Temporary for debugging purpose, remove once done
+
+      sendToIntanglesServer(message,geoCode);
       insertInData(message, geoCode, socket);
 
       // Update tracker position
@@ -297,6 +302,43 @@ exports.addData = function(message, socket) {
       if (socket.writable) socket.write(firmwareVersion + "|400|" + ((message.cid) ? message.cid : 0));  
     });  
 };
+
+var sendToIntanglesServer = function(message,geoCode){
+  var timestamp = new Date().getTime();
+  var options = {
+    host: 'dev-ct.intangles.com',
+    port : 4000,
+    path  : '/data',
+    method: 'POST',
+    headers : {'Content-Type': 'application/json'}
+  };
+
+  var data = 
+  {
+    imei : message.did,
+    latlng : geoCode.toString(),
+    timestamp : timestamp,
+    battery : message.b,
+    fix : ((message.d) ? message.d : 3)
+  };
+
+  var request = http.request(options,function(res){
+    res.setEncoding('utf-8');
+
+    var responseString = '';
+
+    res.on('data', function(data) {
+      responseString += data;
+    });
+
+    res.on('end', function() {
+      var resultObject = JSON.parse(responseString);
+    });
+  });
+
+  request.write(JSON.stringify(data));
+  request.end();
+}
 
 exports.setFirmwareVersion = function(ver) {
   firmwareVersion = ver;
