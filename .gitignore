@@ -1,6 +1,6 @@
 # Build Folders
 node_modules
-./forever
+.forever/
 
 # Compiled source #
 ###################

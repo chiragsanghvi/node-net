@@ -304,7 +304,6 @@ exports.addData = function(message, socket) {
 };
 
 var sendToIntanglesServer = function(message,geoCode){
-  console.log("In sendToIntanglesServer");
   var timestamp = new Date().getTime();
   var options = {
     host: 'dev-ct.intangles.com',
