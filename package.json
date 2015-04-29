@@ -18,7 +18,6 @@
     "facebook-node-sdk": "0.2",
     "node-simple-router": "x",
     "redis":"x.x.x",
-    "hiredis":"x.x.x",
     "node-static":"x",
     "util-log-timestamp": "x"
   }
